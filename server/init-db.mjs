@@ -82,10 +82,21 @@ async function initDb() {
     // );
   }
 
-  // const existingAdmin2 = await db.get(`SELECT id FROM admins WHERE username = ?`, ["RasoulKarimi"]);
-  // if (!existingAdmin2) {
-  //   await db.run(`INSERT INTO admins (username, password) VALUES (?, ?)`, ["RasoulKarimi", "dr!2345"]);
-  // }
+  const existingAdmin2 = await db.get(`SELECT id FROM admins WHERE username = ?`, ["admin2"]);
+  if (existingAdmin2) {
+     // Delete admin user
+    await db.run(
+      `DELETE FROM admins WHERE username = ?`,
+      ["admin2"]
+    );
+  }
+
+  const DrKarimi = await db.get(`SELECT id FROM admins WHERE username = ?`, ["RasoulKarimi"]);
+  if (!DrKarimi) {
+    await db.run(`INSERT INTO admins (username, password) VALUES (?, ?)`, ["RasoulKarimi", "dr!2345"]);
+  }
+
+
   // const existingAdmin3 = await db.get(`SELECT id FROM admins WHERE username = ?`, ["dabirElmi"]);
   // if (!existingAdmin3) {
   //   await db.run(`INSERT INTO admins (username, password) VALUES (?, ?)`, ["dabirElmi", "12345678"]);
