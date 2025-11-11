@@ -1,0 +1,314 @@
+{
+  "brandName": "Innovation Shield",
+  "logoAlt": "Innovation Shield Logo",
+
+  "program": "National Innovation Program",
+  "heroTitle": "Innovative Ideas Challenge — Innovation Shield",
+  "heroSubtitle": "Empowering innovators to build sustainable solutions in crisis management, passive defense, and social preparedness.",
+
+  "ctaStart": "Submit Idea",
+  "ctaTracks": "View Tracks",
+
+  "nav": {
+    "tracks": "Tracks",
+    "committee": "Scientific Committee",
+    "timeline": "Timeline",
+    "resources": "Resources",
+    "contact": "Contact",
+    "account": "Account",
+    "login": "Login",
+    "signup": "Sign Up",
+    "brandTitle": "National Innovation Shield Conference"
+  },
+
+  "common": {
+    "logout": "Log Out",
+    "language": "Language",
+    "english": "English",
+    "persian": "Persian",
+    "openMenu": "Open Menu",
+    "closeMenu": "Close Menu"
+  },
+
+  "adminMenu": {
+    "dashboard": "Dashboard",
+    "ideas": "Ideas",
+    "judges": "Judges",
+    "assignments": "Assignments",
+    "ranking": "Project Ranking",
+    "users": "Users"
+  },
+
+  "countdown": {
+    "title": "Submission Deadline",
+    "tip": "Do not miss key dates.",
+    "seeTimeline": "View Full Timeline",
+    "submission": "Idea Submission Deadline",
+    "results": "Final Evaluation & Announcement",
+    "closing": "Closing Ceremony"
+  },
+
+  "timer": {
+    "days": "Days",
+    "hours": "Hours",
+    "minutes": "Minutes",
+    "seconds": "Seconds",
+    "closed": "Closed"
+  },
+
+  "tracksCard": {
+    "title": "Tracks",
+    "text": "Explore thematic tracks and select the right path for your idea."
+  },
+
+  "submitCard": {
+    "title": "Submit Idea",
+    "text": "Complete the form and upload your proposal.",
+    "start": "Begin Submission",
+    "template": "Download Template"
+  },
+
+  "committeeCard": {
+    "title": "Scientific Committee",
+    "text": "Meet our panel of judges, academics, and innovation advisors."
+  },
+
+  "timeline": {
+    "title": "Program Timeline",
+    "item": {
+      "submission": "Idea Submission Period",
+      "review": "Review & Evaluation",
+      "results": "Final Results"
+    }
+  },
+
+  "resources": "Resources",
+  "resourcesPdf": "Call for Participation (PDF)",
+  "resourcesDoc": "Idea Template (DOCX)",
+  "resourcesZip": "Track Overview Package (ZIP)",
+
+  "contact": "Contact",
+  "support": "Support",
+  "messageUs": "Message Us",
+
+  "awards": {
+    "title": "Awards & Support",
+    "items": [
+      "Special funding support",
+      "Award for top team",
+      "Innovation prizes",
+      "National & international networking",
+      "Media support",
+      "Acceleration opportunities"
+    ]
+  },
+
+  "buttons": {
+    "seeAll": "See All",
+    "exploreTrack": "Explore Track",
+    "viewIdea": "Details",
+    "edit": "Edit",
+    "downloadPdf": "Download PDF",
+    "csv": "CSV"
+  },
+
+  "tracksPage": {
+    "title": "Program Tracks",
+    "subtitle": "Explore all themes and select the best fit for your innovative idea.",
+    "searchPh": "Search tracks..."
+  },
+
+  "tracks": {
+    "defense": {
+      "title": "Enhancing Defensive Capabilities in Emergencies",
+      "desc": "Innovative solutions to strengthen national resilience, reduce vulnerability, and prepare for unexpected crisis scenarios.",
+      "text": "Strengthening national resilience against crises and unexpected threats is one of the most strategic priorities for any nation.\nModern countries face diverse threats ranging from natural disasters (earthquakes, floods, storms) to human-driven crises like pandemics, cyberattacks, and security threats.\nNational resilience means the ability of a society to resist, adapt, and recover from critical conditions.\nThis depends on the resilience of key infrastructure — energy, transportation, communication, IT networks, food and water supply, and medical systems.\nModern technologies such as AI, big data, IoT, and smart early-warning systems can significantly enhance crisis detection and rapid response.\nSimulation tools and crisis scenario planning help identify vulnerabilities and improve preparedness.\nPublic education and community readiness are essential.\nCollaboration between government, private sector, NGOs, and international networks enhances crisis preparedness and response.\nThe goal is building a safer, more adaptable, and resilient society ready to face unexpected threats."
+    },
+    "cyberDefense": {
+      "title": "Innovation in Cyber Defense (Active & Passive)",
+      "desc": "Development of intelligent cyber defense technologies and systems for hybrid threats and complex cyberattacks.",
+      "text": "Cyber defense innovation is essential for national security in the digital era.\nCyberattacks now target vital systems like energy, transport, finance, and healthcare.\nActive defense includes smart firewalls, intrusion detection systems, and AI-driven threat monitoring.\nPassive defense includes secure architecture, encryption, distributed systems, and backup mechanisms.\nBlockchain can enhance data integrity and transparency.\nHuman awareness remains crucial — social engineering remains a major threat.\nCollaboration between security agencies, universities, startups, and private industry is key.\nUltimately, cyber innovation strengthens public trust, national security, and digital economy growth."
+    },
+    "aiInCrisis": {
+      "title": "AI Applications in Crisis Management",
+      "desc": "Using AI and machine-learning systems for forecasting, monitoring, and accelerating response during crises.",
+      "text": "AI offers transformative capabilities for crisis management.\nMachine-learning models predict disasters like floods and earthquakes.\nAI optimizes emergency logistics and evacuation paths.\nAI in healthcare identifies outbreaks and allocates medical resources.\nRobotics and drones support search-and-rescue and supply delivery.\nNLP enables rapid social-media crisis analysis.\nEthical standards, privacy, and transparency frameworks are essential.\nAI in crises saves lives, reduces damage, and increases national readiness."
+    },
+    "crisisSupport": {
+      "title": "Emergency Services & Relief (Food, Shelter, Medicine)",
+      "desc": "Innovative systems for rapid supply distribution, healthcare access, emergency logistics, and public support.",
+      "text": "In crises, rapid access to food, shelter, medical services, and emergency aid is vital.\nSmart supply-chain systems, drones, and rapid-deployment medical units improve efficiency.\nTelemedicine expands access to treatment.\nPrepared food kits, durable clothing systems, and scalable aid packages help populations.\nTraining volunteers and documenting lessons learned improves future response capabilities."
+    },
+    "dataParticipation": {
+      "title": "Data-Based Crisis Management & Public Participation",
+      "desc": "Data platforms for crisis monitoring, Big-Data analysis, public reporting, and transparent emergency response.",
+      "text": "Data systems enable real-time crisis tracking using sensors, satellite data, IoT, and social-media inputs.\nPublic participation strengthens accuracy and national unity.\nPrivacy, security laws, and transparency standards are necessary.\nGovernment–university–private sector cooperation is essential.\nData-driven systems enable faster, smarter, and fairer crisis management."
+    },
+    "volunteerNetwork": {
+      "title": "Volunteer Network & Social Relief Management",
+      "desc": "Systems for organizing volunteers to support psychological, social, cultural, and humanitarian services.",
+      "text": "Volunteers are critical in emergencies.\nDigital platforms assign volunteers based on skills.\nPsychological support, spiritual services, and cultural programs strengthen community resilience.\nTraining, drills, and recognition programs enable better crisis readiness.\nEffective volunteer systems increase national solidarity and resilience."
+    }
+  },
+
+  "auth": {
+    "signup": "Sign Up",
+    "signupSub": "Create your account to continue",
+    "signupSuccess": "Registration successful. Welcome!",
+    "emailLabel": "Email",
+    "password": "Password",
+    "toLogin": "Login",
+    "nameLabel": "Full Name",
+
+    "login": "Login",
+    "loginSub": "Enter your credentials to continue",
+    "loginSuccess": "Logged in successfully. Welcome!",
+    "idLabel": "Email or Mobile Number",
+    "toSignup": "Sign Up",
+
+    "errors": {
+      "required": "This field is required",
+      "invalidEmail": "Enter a valid email",
+      "minPassLength": "Password must be at least 6 characters",
+      "server": "An error occurred. Try again.",
+      "invalidCredentials": "Incorrect email/phone or password"
+    }
+  },
+
+  "submit": {
+    "title": "Submit Idea",
+    "submitterName": "Full Name",
+    "contactEmail": "Contact Email",
+    "contactPhone": "Phone Number",
+    "track": "Track",
+    "ideaTitle": "Idea Title",
+    "executiveSummary": "Executive Summary",
+    "file": "File 1 (PDF)",
+    "file2": "File 2 (Word)",
+    "uploadFile": "Upload File",
+    "teamMembers": "Team Members",
+    "addMember": "Add Member",
+    "send": "Submit",
+    "sending": "Submitting...",
+
+    "errors": {
+      "fileRequired": "Please upload your proposal file.",
+      "file2Required": "Please upload the second required file.",
+      "fileType": "Only PDF and Word files are allowed.",
+      "fileSize": "File must be under 50 MB.",
+      "submitterName": "Please enter your full name.",
+      "phone": "Please enter your phone number.",
+      "phoneValid": "Enter a valid phone number.",
+      "email": "Please enter your email.",
+      "emailValid": "Enter a valid email.",
+      "track": "Please select a track.",
+      "title": "Please enter a title.",
+      "summary": "Please enter the executive summary.",
+      "summaryLength": "Summary must be at least 50 characters.",
+      "submitFailed": "Submission failed. Try again."
+    },
+
+    "success": {
+      "title": "Idea Submitted Successfully!",
+      "text": "Thank you. Your idea will be reviewed and we will contact you.",
+      "back": "Back to Account"
+    },
+
+    "tracks": {
+      "placeholder": "Select Track",
+      "defense": "Enhancing Defensive Capabilities in Emergencies",
+      "cyberDefense": "Innovation in Cyber Defense (Active & Passive)",
+      "aiInCrisis": "AI in Crisis Management",
+      "crisisSupport": "Emergency Support & Relief",
+      "dataParticipation": "Data-Driven Crisis Management & Public Participation",
+      "volunteerNetwork": "Volunteer Network & Social Support"
+    }
+  },
+
+  "account": {
+    "title": "Account",
+    "activityTitle": "My Ideas",
+    "loadError": "Error loading data",
+    "retry": "Retry",
+    "noIdeas": "You haven't submitted any ideas yet.",
+    "submitNewIdea": "Submit New Idea",
+    "deleteIdea": "Delete Idea",
+    "confirmDelete": "Delete idea “{title}”? This cannot be undone.",
+    "deleteError": "Error deleting: {error}",
+    "deleteFailed": "Deletion failed",
+    "track": "Track",
+    "submittedAt": "Submitted At",
+    "updatedAt": "Last Updated",
+    "scoreAvg": "Average Score",
+    "submitterName": "Submitter",
+    "contactEmail": "Email",
+    "phone": "Phone",
+    "teamMembers": "Team",
+    "file": "File",
+    "viewUploadedFile": "View File",
+    "download": "Download"
+  },
+
+  "committee": {
+    "title": "Scientific Committee",
+    "text": "Meet the judges and innovation advisors",
+    "members": [
+      {
+        "name": "Dr. Rasoul Karimi",
+        "role": "Scientific Chair",
+        "affiliation": "Faculty Member, Imam Khomeini Maritime University — Innovation & Tech Development Center",
+        "bio": "Expert in energy optimization, AI, and renewable energy systems. PhD in Mechanical Engineering.",
+        "tags": ["Scientific Chair", "Mechanical Engineering", "Innovation Ecosystem"]
+      },
+      {
+        "name": "Commissar Rasoul Ghaderi",
+        "role": "Executive Chair",
+        "affiliation": "Executive Officer — Experience in logistics & operations",
+        "bio": "Expert in administrative operations, logistics, and crisis-preparedness coordination.",
+        "tags": ["Executive Chair", "Management", "Logistics"]
+      }
+    ]
+  },
+
+  "footer": {
+    "template": "Download Template (Word)",
+    "copyright": "© 2025 cOOciDev, Noshahr Innovation Center, Imam Khomeini Maritime University"
+  },
+
+  "theme": {
+    "toggle": "Toggle Theme",
+    "light": "Light",
+    "dark": "Dark"
+  },
+
+  "header": {
+    "myAccount": "My Account",
+    "signInOrRegister": "Login / Sign Up",
+    "seeAll": "See All",
+    "submit": "Submit Idea",
+    "committee": "Scientific Committee",
+    "tracks": "Tracks",
+    "prize": "Awards",
+    "timeline": "Timeline",
+    "resources": "Resources",
+    "contact": "Contact",
+    "openMenu": "Open Menu",
+    "closeMenu": "Close Menu",
+    "primaryNavigation": "Primary Navigation"
+  },
+
+  "social": {
+    "whatsapp": "WhatsApp",
+    "eitaa": "Eitaa",
+    "messagingHint": "For urgent messages, contact us via WhatsApp / Eitaa"
+  },
+
+  "contact": {
+    "title": "Contact Us",
+    "call": "Call",
+    "landline": "Landline",
+    "mobile": "Mobile",
+    "messaging": "Messaging",
+    "email": "Email"
+  }
+}
