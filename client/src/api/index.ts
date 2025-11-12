@@ -231,6 +231,10 @@ export async function updateUserStatus(id: string, status: "ACTIVE" | "SUSPENDED
 }
 // ... سایر import/export ها و type ها
 
+export async function deleteUser(id: string): Promise<void> {
+  await api<void>(`/api/users/${id}`, { method: "DELETE" });
+}
+
 export async function deleteIdea(id: string): Promise<void> {
   await api<void>(`/api/ideas/${id}`, { method: "DELETE" });
 }

@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { listIdeas } from "../../api";
+import { deleteIdea, listIdeas } from "../../api";
 import type { Idea } from "../../api";
-import { Table, Input, Typography, Space, Tag, Empty, Tooltip } from "antd";
-import { FilePdfOutlined, FileWordOutlined } from "@ant-design/icons";
+import { Table, Input, Typography, Space, Tag, Empty, Tooltip, Button, Modal, message } from "antd";
+import { DeleteOutlined, FilePdfOutlined, FileWordOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { TRACKS } from "../../AppData/tracks";
 import type { ColumnsType } from "antd/es/table";
@@ -23,6 +23,10 @@ export default function Ideas() {
   const [data, setData] = useState<IdeaRow[] | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [q, setQ] = useState("");
+  const [ideaToDelete, setIdeaToDelete] = useState<IdeaRow | null>(null);
+  const [deleteStep, setDeleteStep] = useState<1 | 2>(1);
+  const [deleteInput, setDeleteInput] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const trackLabels = useMemo(() => {
     const map = new Map<string, string>();
@@ -72,6 +76,58 @@ export default function Ideas() {
       );
     });
   }, [data, q]);
+
+  const openDeleteModal = useCallback((idea: IdeaRow) => {
+    setIdeaToDelete(idea);
+    setDeleteStep(1);
+    setDeleteInput("");
+  }, []);
+
+  const closeDeleteModal = useCallback(() => {
+    if (deleteLoading) return;
+    setIdeaToDelete(null);
+    setDeleteInput("");
+    setDeleteStep(1);
+  }, [deleteLoading]);
+
+  const handleDeleteIdea = useCallback(async () => {
+    if (!ideaToDelete) return;
+    if (deleteStep === 1) {
+      setDeleteStep(2);
+      return;
+    }
+    const expected = String(ideaToDelete.id);
+    if (deleteInput.trim() !== expected) {
+      message.warning(
+        t("admin.ideas.delete.inputMismatch", {
+          defaultValue: "Enter the idea ID exactly to confirm deletion.",
+        })
+      );
+      return;
+    }
+    setDeleteLoading(true);
+    try {
+      await deleteIdea(expected);
+      setData((prev) => (prev || []).filter((idea) => String(idea.id) !== expected));
+      message.success(
+        t("admin.ideas.delete.success", {
+          title: ideaToDelete.title,
+          defaultValue: "Idea removed",
+        })
+      );
+      setIdeaToDelete(null);
+      setDeleteInput("");
+      setDeleteStep(1);
+    } catch (error) {
+      const errMsg =
+        error instanceof Error
+          ? error.message
+          : t("admin.ideas.delete.failed", { defaultValue: "Failed to delete idea" });
+      message.error(errMsg);
+    } finally {
+      setDeleteLoading(false);
+    }
+  }, [deleteInput, deleteStep, ideaToDelete, t]);
 
   const columns: ColumnsType<IdeaRow> = useMemo(
     () => [
@@ -173,8 +229,24 @@ export default function Ideas() {
           );
         },
       },
+      {
+        title: t("admin.ideas.actions", { defaultValue: "Actions" }),
+        key: "actions",
+        width: 100,
+        fixed: "right",
+        render: (_: unknown, record: IdeaRow) => (
+          <Tooltip title={t("admin.ideas.delete.cta", { defaultValue: "Delete idea" })}>
+            <Button
+              type="text"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => openDeleteModal(record)}
+            />
+          </Tooltip>
+        ),
+      },
     ],
-    [data, t, trackLabels]
+    [data, t, trackLabels, openDeleteModal]
   );
 
   return (
@@ -204,6 +276,56 @@ export default function Ideas() {
           emptyText: <Empty description={t("admin.ideas.empty")} />,
         }}
       />
+
+      <Modal
+        open={!!ideaToDelete}
+        onCancel={closeDeleteModal}
+        okText={
+          deleteStep === 1
+            ? t("admin.ideas.delete.proceed", { defaultValue: "Continue" })
+            : t("admin.ideas.delete.confirm", { defaultValue: "Delete" })
+        }
+        cancelText={t("common.back")}
+        okButtonProps={{ danger: deleteStep === 2, loading: deleteLoading }}
+        onOk={handleDeleteIdea}
+        title={t("admin.ideas.delete.title", { defaultValue: "Delete idea" })}
+      >
+        <Space direction="vertical" size={12} style={{ width: "100%" }}>
+          {deleteStep === 1 && ideaToDelete && (
+            <>
+              <Typography.Paragraph>
+                {t("admin.ideas.delete.stepOne", {
+                  title: ideaToDelete.title,
+                  id: ideaToDelete.id,
+                  defaultValue:
+                    "You are about to delete “{title}” (ID {id}). This removes all related assignments and files.",
+                })}
+              </Typography.Paragraph>
+              <Typography.Text type="danger">
+                {t("admin.ideas.delete.warning", {
+                  defaultValue: "This cannot be undone.",
+                })}
+              </Typography.Text>
+            </>
+          )}
+          {deleteStep === 2 && ideaToDelete && (
+            <>
+              <Typography.Paragraph>
+                {t("admin.ideas.delete.stepTwo", {
+                  id: ideaToDelete.id,
+                  defaultValue: "Type the idea ID ({id}) to confirm permanent deletion.",
+                })}
+              </Typography.Paragraph>
+              <Input
+                value={deleteInput}
+                onChange={(e) => setDeleteInput(e.target.value)}
+                placeholder={String(ideaToDelete.id)}
+                autoFocus
+              />
+            </>
+          )}
+        </Space>
+      </Modal>
     </div>
   );
 }

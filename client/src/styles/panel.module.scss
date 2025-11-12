@@ -46,12 +46,25 @@ html[data-theme="dark"] {
   display: flex;
   align-items: center;
   gap: 12px;
+  justify-content: space-between;
 }
 
 .topbarTitle {
-  flex: 1;
-  text-align: center;
   font-weight: 600;
+}
+
+.topbarActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topbarBtn {
+  color: var(--panel-fg);
+}
+
+.topbarBtn :global(.ant-btn) {
+  color: inherit;
 }
 
 @media (min-width: 993px) {
@@ -106,6 +119,25 @@ html[data-theme="dark"] {
   border: 0;
 }
 .btnGhost:hover { background: rgba(148,163,184,.15); }
+
+.iconButton {
+  border: 0;
+  background: transparent;
+  color: var(--panel-muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  font-size: 16px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+.iconButton:hover {
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.12);
+}
 
 .tableWrap { overflow: auto; }
 .table {
