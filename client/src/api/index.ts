@@ -11,19 +11,41 @@ export interface Idea {
   status: IdeaStatus;
   scoreAvg?: number | null;
   fileUrl?: string | null;
+  userId?: number | string;
+  contactEmail?: string | null;
+  submitterName?: string | null;
+  submitterUsername?: string | null;
+  phone?: string | null;
+  teamMembers?: string | string[] | Record<string, unknown> | null;
+  executiveSummary?: string | null;
+  files?: { pdf?: string | null; word?: string | null } | null;
+  userEmail?: string | null;
+  userName?: string | null;
+  assignments?: Assignment[];
 }
 
 export interface Judge {
   id: string;
   name: string;
-  email?: string;
+  username?: string | null;
+  email?: string | null;
+  projectCount?: number;
 }
 
 export interface Assignment {
   id: string;
-  ideaId: string;
-  judgeId: string;
-  status: "ASSIGNED" | "DONE";
+  ideaId?: string;
+  judgeId?: string | null;
+  judgeName?: string | null;
+  judgeUsername?: string | null;
+  status: "ASSIGNED" | "DONE" | "PENDING";
+  description?: string | null;
+  finalScore?: number | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  decisionAt?: string | null;
+  pdfUrl?: string | null;
+  evaluation?: unknown;
 }
 
 export interface AdminUser {
@@ -104,20 +126,15 @@ export async function getIdea(id: string): Promise<Idea> {
 /* ------------------------------------------------------------------ */
 
 export async function listJudges(): Promise<Judge[]> {
-//   return api<Judge[]>(`/api/judges`); for srvr
-const newp = [{
-    id: "1",
-    name: "Dr. Rasoul Karimi",
-    role: "Chief Judge",
-    affiliation: "Web & Game Studio",
-    photo: "/images/committee/sara.jpg",
-    shortBio:
-      "Expert in disaster risk reduction and community resilience.",
-    profileUrl: "#",
-    tags: ["Risk", "Resilience"],
-  },] 
-
-  return newp;
+  const judges = await api<Array<{ id: number | string; name?: string; username?: string; projectCount?: number }>>(
+    `/api/admin/judges`
+  );
+  return judges.map((j) => ({
+    id: String(j.id),
+    name: j?.name ?? "",
+    username: j?.username ?? null,
+    projectCount: typeof j?.projectCount === "number" ? j.projectCount : undefined,
+  }));
 }
 
 export async function createJudge(payload: { name: string; email?: string }): Promise<Judge> {
@@ -133,7 +150,53 @@ export async function createJudge(payload: { name: string; email?: string }): Pr
 /* ------------------------------------------------------------------ */
 
 export async function listAssignments(): Promise<Assignment[]> {
-  return api<Assignment[]>(`/api/assignments`);
+  const assignments = await api<
+    Array<{
+      id: number | string;
+      judgeId?: number | string | null;
+      judgeName?: string | null;
+      judgeUsername?: string | null;
+      description?: string | null;
+      status?: string | null;
+      final_score?: number | null;
+      created_at?: string | null;
+      updated_at?: string | null;
+      decision_at?: string | null;
+      idea_id?: number | string | null;
+      pdf_url?: string | null;
+      evaluation?: unknown;
+    }>
+  >(`/api/admin/projects`);
+
+  return assignments.map((row) => {
+    const rawStatus = String(row?.status ?? "").toUpperCase();
+    let status: Assignment["status"] = "ASSIGNED";
+    if (rawStatus === "DONE" || rawStatus === "REVIEWED" || rawStatus === "COMPLETED") {
+      status = "DONE";
+    } else if (!rawStatus || rawStatus === "PENDING") {
+      status = "PENDING";
+    }
+    return {
+      id: String(row.id),
+      ideaId:
+        row.idea_id != null
+          ? String(row.idea_id)
+          : row.description
+            ? String(row.description)
+            : String(row.id),
+      judgeId: row.judgeId != null ? String(row.judgeId) : null,
+      judgeName: row.judgeName ?? (row.judgeId != null ? String(row.judgeId) : null),
+      judgeUsername: row.judgeUsername ?? null,
+      status,
+      description: row.description ?? null,
+      finalScore: row.final_score ?? null,
+      createdAt: row.created_at ?? null,
+      updatedAt: row.updated_at ?? null,
+      decisionAt: row.decision_at ?? null,
+      pdfUrl: row.pdf_url ?? null,
+      evaluation: row.evaluation ?? null,
+    };
+  });
 }
 
 export async function createAssignment(ideaId: string, judgeIds: string[]): Promise<void> {

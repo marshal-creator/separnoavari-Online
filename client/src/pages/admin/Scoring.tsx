@@ -35,14 +35,18 @@ export default function Scoring() {
         const judgeMap = new Map<string, Judge>(judges.map((j) => [j.id, j]));
 
         const enriched: Row[] = assigns.map((a) => {
-          const i = ideaMap.get(a.ideaId);
-          const j = judgeMap.get(a.judgeId);
+          const ideaKey = a.ideaId ? String(a.ideaId) : String(a.id);
+          const judgeKey = a.judgeId ? String(a.judgeId) : "";
+          const idea = ideaMap.get(ideaKey);
+          const judge = judgeMap.get(judgeKey);
           return {
             ...a,
-            ideaTitle: i?.title ?? a.ideaId,
-            judgeName: j?.name ?? a.judgeId,
-            submittedAt: i?.submittedAt,
-            scoreAvg: i?.scoreAvg ?? null,
+            ideaId: ideaKey,
+            judgeId: judgeKey,
+            ideaTitle: idea?.title ?? ideaKey,
+            judgeName: judge?.name ?? a.judgeName ?? (judgeKey || "—"),
+            submittedAt: idea?.submittedAt ?? a.createdAt ?? null,
+            scoreAvg: idea?.scoreAvg ?? a.finalScore ?? null,
           };
         });
 

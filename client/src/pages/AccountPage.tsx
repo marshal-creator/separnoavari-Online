@@ -9,7 +9,7 @@ import { TRACKS } from "../AppData/tracks";
 
 import type { FirstMyIdeaType } from "../service/apis/account/MyIdea/type";
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 export default function AccountPage() {
   const { t } = useTranslation();
@@ -59,6 +59,33 @@ export default function AccountPage() {
   };
 
   const items: FirstMyIdeaType[] = data?.ideas ?? [];
+
+  const getStatusMeta = (status?: string) => {
+    const normalized = (status || "PENDING").toUpperCase();
+    switch (normalized) {
+      case "UNDER_REVIEW":
+        return {
+          label: t("admin.status.underReview"),
+          className: `${styles.statusPill} ${styles.statusReview}`,
+        };
+      case "ACCEPTED":
+        return {
+          label: t("admin.status.accepted"),
+          className: `${styles.statusPill} ${styles.statusAccepted}`,
+        };
+      case "REJECTED":
+        return {
+          label: t("admin.status.rejected"),
+          className: `${styles.statusPill} ${styles.statusRejected}`,
+        };
+      case "PENDING":
+      default:
+        return {
+          label: t("admin.status.pending"),
+          className: `${styles.statusPill} ${styles.statusPending}`,
+        };
+    }
+  };
 
   const getTrackLabel = (slug?: string) => {
     if (!slug) return "—";
@@ -115,63 +142,82 @@ export default function AccountPage() {
 
           {!isLoading && !isError && items.length > 0 && (
             <div className={styles.listGridWrapper}>
-              {items.map((item) => (
-                <article className={styles.card} key={item.id}>
-                  <div className={styles.cardHead}>
-                    <h3 className={styles.cardTitle}>{item.idea_title}</h3>
-                    <Tag color="blue">{getTrackLabel(item.track)}</Tag>
-                  </div>
-
-                  {item.executive_summary && (
-                    <Text style={{ display: "block", marginBottom: 30 }}>
-                      {item.executive_summary}
-                    </Text>
-                  )}
-
-                  <div className={styles.metaList}>
-                    <div className={styles.metaWrapper}>
-                      <span className={styles.metaKey}>{t("account.submittedAt")}: </span>
-                      <span className={styles.metaVal}>{fmt(item.submitted_at)}</span>
-                    </div>
-                    <div className={styles.metaWrapper}>
-                      <span className={styles.metaKey}>{t("account.submitterName") || "Submitter"}: </span>
-                      <span className={styles.metaVal}>{item.submitter_full_name || "—"}</span>
-                    </div>
-                    <div className={styles.metaWrapper}>
-                      <span className={styles.metaKey}>{t("account.contactEmail") || "Email"}: </span>
-                      <span className={styles.metaVal}>{item.contact_email || "—"}</span>
-                    </div>
-                    <div className={styles.metaWrapper}>
-                      <span className={styles.metaKey}>{t("account.teamMembers") || "Team"}: </span>
-                      <span className={styles.metaVal}>{
-                        Array.isArray(item.team_members)
-                          ? item.team_members.join(", ")
-                          : (typeof item.team_members === "object" && item.team_members !== null)
-                            ? Object.keys(item.team_members)
-                                .sort()
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                .map(k => String((item.team_members as any)[k]))
-                                .filter(Boolean)
-                                .join(", ") || "—"
-                            : (item.team_members || "—")
-                      }</span>
-                    </div>
-                    {item.file_path && (
-                      <div className={styles.metaWrapper}>
-                        <span className={styles.metaKey}>{t("account.file") || "File"}: </span>
-                        <a
-                          className={styles.metaValLink}
-                          href={`http://localhost:5000/${item.file_path.replace(/^\.\/?/, "")}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {t("account.viewUploadedFile") || "View uploaded file"}
-                        </a>
+              {items.map((item) => {
+                const statusMeta = getStatusMeta(item.status);
+                return (
+                  <article className={styles.card} key={item.id}>
+                    <div className={styles.cardHead}>
+                      <div className={styles.cardTitleWrap}>
+                        <h3 className={styles.cardTitle}>{item.idea_title}</h3>
+                        <span className={statusMeta.className}>{statusMeta.label}</span>
                       </div>
+                      <div className={styles.tagTrack}>
+                        <Tag color="blue">{getTrackLabel(item.track)}</Tag>
+                      </div>
+                    </div>
+
+                    {item.executive_summary && (
+                      <p className={styles.summary}>{item.executive_summary}</p>
                     )}
-                  </div>
-                </article>
-              ))}
+
+                    <div className={styles.metaList}>
+                      <div className={styles.metaWrapper}>
+                        <span className={styles.metaKey}>{t("account.submittedAt")}:</span>
+                        <span className={styles.metaVal}>{fmt(item.submitted_at)}</span>
+                      </div>
+                      <div className={styles.metaWrapper}>
+                        <span className={styles.metaKey}>
+                          {t("account.submitterName") || "Submitter"}:
+                        </span>
+                        <span className={styles.metaVal}>
+                          {item.submitter_full_name || "—"}
+                        </span>
+                      </div>
+                      <div className={styles.metaWrapper}>
+                        <span className={styles.metaKey}>
+                          {t("account.contactEmail") || "Email"}:
+                        </span>
+                        <span className={styles.metaVal}>{item.contact_email || "—"}</span>
+                      </div>
+                      <div className={styles.metaWrapper}>
+                        <span className={styles.metaKey}>
+                          {t("account.teamMembers") || "Team"}:
+                        </span>
+                        <span className={styles.metaVal}>
+                          {Array.isArray(item.team_members)
+                            ? item.team_members.join(", ")
+                            : typeof item.team_members === "object" &&
+                                item.team_members !== null
+                              ? Object.keys(item.team_members)
+                                  .sort()
+                                  .map((k) =>
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                    String((item.team_members as any)[k])
+                                  )
+                                  .filter(Boolean)
+                                  .join(", ") || "—"
+                              : item.team_members || "—"}
+                        </span>
+                      </div>
+                      {item.file_path && (
+                        <div className={styles.metaWrapper}>
+                          <span className={styles.metaKey}>
+                            {t("account.file") || "File"}:
+                          </span>
+                          <a
+                            className={styles.metaValLink}
+                            href={`http://localhost:5000/${item.file_path.replace(/^\.\/?/, "")}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {t("account.viewUploadedFile") || "View uploaded file"}
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           )}
         </div>

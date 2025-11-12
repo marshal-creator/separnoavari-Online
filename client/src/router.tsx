@@ -18,6 +18,7 @@ import IdeaEdit from "./pages/ideas/IdeaEdit";
 import IdeaExport from "./pages/ideas/IdeaExport";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminIdeas from "./pages/admin/Ideas";
+import AdminIdeaDetailPage from "./pages/admin/ideas/IdeaDetailPage";
 import AdminUsers from "./pages/admin/Users";
 import AdminAssignments from "./pages/admin/Assignments";
 import AdminJudges from "./pages/admin/Judges";
@@ -64,6 +65,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <AdminDashboard /> },
       { path: "ideas", element: <AdminIdeas /> },
+      { path: "ideas/:id", element: <AdminIdeaDetailPage /> },
       { path: "users", element: <AdminUsers /> },
       { path: "assignments", element: <AdminAssignments /> },
       { path: "judges", element: <AdminJudges /> },
