@@ -1,6 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
@@ -8,6 +8,8 @@ import {
   Card,
   Divider,
   Empty,
+  message,
+  Select,
   Space,
   Spin,
   Tag,
@@ -21,7 +23,14 @@ import {
   FileWordOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
-import { getIdea, type Idea, type Assignment } from "../../../api";
+import {
+  createAssignment,
+  getIdea,
+  listJudges,
+  type Idea,
+  type Assignment,
+  type Judge,
+} from "../../../api";
 import { TRACKS } from "../../../AppData/tracks";
 
 const { Title, Text, Paragraph } = Typography;
@@ -33,6 +42,8 @@ export default function IdeaDetailPage() {
   const params = useParams();
   const navigate = useNavigate();
   const ideaId = params.id ?? "";
+  const queryClient = useQueryClient();
+  const [selectedJudges, setSelectedJudges] = useState<string[]>([]);
 
   const { data: idea, isLoading, isError, error } = useQuery<IdeaDetail>({
     queryKey: ["admin-idea-detail", ideaId],
@@ -42,6 +53,66 @@ export default function IdeaDetailPage() {
     },
     enabled: Boolean(ideaId),
   });
+
+  const { data: judges = [], isLoading: judgesLoading } = useQuery<Judge[]>({
+    queryKey: ["admin-judges-all"],
+    queryFn: listJudges,
+  });
+
+  const assignMutation = useMutation({
+    mutationFn: (judgeIds: string[]) => createAssignment(ideaId, judgeIds),
+    onSuccess: (_, variables) => {
+      message.success(
+        t("admin.ideas.assignJudges.success", {
+          count: variables.length,
+          defaultValue:
+            variables.length === 1
+              ? "Judge assigned successfully."
+              : "Judges assigned successfully.",
+        })
+      );
+      setSelectedJudges([]);
+      queryClient.invalidateQueries({ queryKey: ["admin-idea-detail", ideaId] });
+      queryClient.invalidateQueries({ queryKey: ["admin-ideas"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-projects-ranking"] });
+    },
+    onError: (err: unknown) => {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : t("admin.ideas.assignJudges.error", { defaultValue: "Failed to assign judges." });
+      message.error(msg);
+    },
+  });
+
+  const assignedJudgeIds = useMemo(() => {
+    return new Set(
+      (idea?.assignments || [])
+        .map((assignment) => assignment.judgeId)
+        .filter((id): id is string => Boolean(id))
+        .map((id) => String(id))
+    );
+  }, [idea?.assignments]);
+
+  const availableJudgeOptions = useMemo(
+    () =>
+      (judges || [])
+        .filter((judge) => !assignedJudgeIds.has(String(judge.id)))
+        .map((judge) => ({
+          label: `${judge.name || judge.username || `#${judge.id}`}${
+            judge.username ? ` (${judge.username})` : ""
+          }`,
+          value: String(judge.id),
+        })),
+    [judges, assignedJudgeIds]
+  );
+
+  const ideaHasPdf = Boolean(idea?.files?.pdf);
+
+  const handleAssignJudges = () => {
+    if (!selectedJudges.length || assignMutation.isPending) return;
+    assignMutation.mutate(selectedJudges);
+  };
 
   const trackLabel = useMemo(() => {
     if (!idea?.track) return null;
@@ -80,6 +151,25 @@ export default function IdeaDetailPage() {
       .map((item) => item.trim())
       .filter(Boolean);
   }, [idea?.teamMembers]);
+
+  const assignmentStats = useMemo(() => {
+    const assignments = idea?.assignments || [];
+    const scores = assignments
+      .map((assignment) =>
+        typeof assignment.finalScore === "number" ? Number(assignment.finalScore) : null
+      )
+      .filter((score): score is number => score !== null);
+    const averageScore =
+      scores.length > 0
+        ? Number((scores.reduce((sum, value) => sum + value, 0) / scores.length).toFixed(2))
+        : null;
+    const completed = scores.length;
+    return {
+      averageScore,
+      completed,
+      total: assignments.length,
+    };
+  }, [idea?.assignments]);
 
   if (isLoading) {
     return (
@@ -192,7 +282,86 @@ export default function IdeaDetailPage() {
           )}
         </Space>
 
+        <Divider orientation="left">
+          {t("admin.ideas.assignJudges.title", { defaultValue: "Assign Judges" })}
+        </Divider>
+        <Card
+          size="small"
+          style={{ borderRadius: 12 }}
+          bodyStyle={{ display: "grid", gap: 12 }}
+        >
+          <Space direction="vertical" size={8} style={{ width: "100%" }}>
+            <Select
+              mode="multiple"
+              allowClear
+              showSearch
+              placeholder={t("admin.ideas.assignJudges.placeholder", {
+                defaultValue: "Select judges to assign",
+              })}
+              options={availableJudgeOptions}
+              value={selectedJudges}
+              onChange={setSelectedJudges}
+              loading={judgesLoading}
+              style={{ width: "100%", maxWidth: 480 }}
+              optionFilterProp="label"
+            />
+            <Space size={12} wrap>
+              <Button
+                type="primary"
+                onClick={handleAssignJudges}
+                loading={assignMutation.isPending}
+                disabled={!selectedJudges.length || !ideaHasPdf}
+              >
+                {t("admin.ideas.assignJudges.button", {
+                  defaultValue: "Assign Selected Judges",
+                })}
+              </Button>
+              <Text type="secondary">
+                {t("admin.ideas.assignJudges.selectedCount", {
+                  count: selectedJudges.length,
+                  defaultValue:
+                    selectedJudges.length === 1
+                      ? "1 judge selected."
+                      : `${selectedJudges.length} judges selected.`,
+                })}
+              </Text>
+            </Space>
+            {!ideaHasPdf && (
+              <Text type="danger">
+                {t("admin.ideas.assignJudges.noPdf", {
+                  defaultValue:
+                    "This idea does not include a PDF file. Please upload one before assigning.",
+                })}
+              </Text>
+            )}
+            {availableJudgeOptions.length === 0 && (
+              <Text type="secondary">
+                {t("admin.ideas.assignJudges.noneAvailable", {
+                  defaultValue: "All judges are already assigned to this idea.",
+                })}
+              </Text>
+            )}
+          </Space>
+        </Card>
+
         <Divider orientation="left">{t("admin.ideas.assignmentsSection", { defaultValue: "Assigned Judges" })}</Divider>
+        <Space align="center" size={12}>
+          <Tag color="blue">
+            {t("admin.ideas.assignmentsSummary.count", {
+              completed: assignmentStats.completed,
+              total: assignmentStats.total,
+              defaultValue: "{{completed}} of {{total}} completed",
+            })}
+          </Tag>
+          {assignmentStats.averageScore != null && (
+            <Tag color="gold">
+              {t("admin.ideas.assignmentsSummary.average", {
+                score: assignmentStats.averageScore,
+                defaultValue: "Average score: {{score}}",
+              })}
+            </Tag>
+          )}
+        </Space>
         {idea.assignments && idea.assignments.length > 0 ? (
           <Space direction="vertical" size={12} style={{ width: "100%" }}>
             {idea.assignments.map((assignment) => (

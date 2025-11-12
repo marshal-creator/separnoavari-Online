@@ -144,6 +144,20 @@
       "track": "Track",
       "date": "Submitted",
       "file": "Files",
+      "assignJudges": {
+        "title": "Assign Judges",
+        "placeholder": "Select judges to assign",
+        "button": "Assign Selected Judges",
+        "selectedCount": "{{count}} judge(s) selected.",
+        "noPdf": "This idea does not include a PDF file. Please upload one before assigning.",
+        "noneAvailable": "All judges are already assigned to this idea.",
+        "success": "Judges assigned successfully.",
+        "error": "Failed to assign judges."
+      },
+      "assignmentsSummary": {
+        "count": "{{completed}} of {{total}} completed",
+        "average": "Average score: {{score}}"
+      },
       "actions": "Actions",
       "submitterName": "Submitter",
       "submitterUsername": "Username",
@@ -171,6 +185,63 @@
       "pending": "Pending",
       "accepted": "Accepted",
       "rejected": "Rejected"
+    },
+    "ranking": {
+      "title": "Project Ranking",
+      "subtitle": "Monitor judge evaluations and identify top-performing ideas.",
+      "searchPlaceholder": "Search ideas or judges",
+      "failedLoadProjects": "Failed to load project ranking.",
+      "columns": {
+        "rank": "Rank",
+        "idea": "Idea",
+        "judgesList": "Judges & Scores",
+        "averageScore": "Average Score",
+        "completed": "Completed",
+        "lastUpdated": "Last activity"
+      },
+      "projects": "projects",
+      "of": "of",
+      "untitled": "(Untitled)",
+      "noJudgesAssigned": "No judges assigned yet.",
+      "pending": "Pending",
+      "unknownJudge": "Unknown judge"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "cards": {
+        "ideas": "Ideas",
+        "judges": "Judges",
+        "assignments": "Assigned ideas"
+      },
+      "charts": {
+        "byStatus": "Ideas by status",
+        "overTime": "Submissions over time"
+      },
+      "recent": {
+        "title": "Recent activity",
+        "ideaSubmitted": "Idea submitted",
+        "empty": "No recent submissions."
+      },
+      "notifications": {
+        "title": "Notifications",
+        "stats": {
+          "totalIdeas": "Total ideas",
+          "assignedIdeas": "Assigned ideas",
+          "unassignedIdeas": "Unassigned ideas",
+          "completedEvaluations": "Completed evaluations"
+        },
+        "feedTitle": "Recent activity",
+        "loading": "Loading notifications…",
+        "empty": "No recent notifications.",
+        "events": {
+          "ideaSubmitted": "A new idea has been submitted.",
+          "evaluationCompleted": "{{judge}} completed an evaluation.",
+          "unknownJudge": "Unknown judge",
+          "untitledIdea": "Untitled idea",
+          "unknownTime": "Time not available"
+        },
+        "lastUpdated": "Last updated: {{time}}"
+      }
     }
   },
 

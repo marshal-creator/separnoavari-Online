@@ -153,6 +153,7 @@ export async function listAssignments(): Promise<Assignment[]> {
   const assignments = await api<
     Array<{
       id: number | string;
+      ideaId?: number | string | null;
       judgeId?: number | string | null;
       judgeName?: string | null;
       judgeUsername?: string | null;
@@ -171,7 +172,14 @@ export async function listAssignments(): Promise<Assignment[]> {
   return assignments.map((row) => {
     const rawStatus = String(row?.status ?? "").toUpperCase();
     let status: Assignment["status"] = "ASSIGNED";
-    if (rawStatus === "DONE" || rawStatus === "REVIEWED" || rawStatus === "COMPLETED") {
+    if (
+      rawStatus === "DONE" ||
+      rawStatus === "REVIEWED" ||
+      rawStatus === "COMPLETED" ||
+      rawStatus === "APPROVED" ||
+      rawStatus === "ACCEPTED" ||
+      rawStatus === "REJECTED"
+    ) {
       status = "DONE";
     } else if (!rawStatus || rawStatus === "PENDING") {
       status = "PENDING";
@@ -179,8 +187,10 @@ export async function listAssignments(): Promise<Assignment[]> {
     return {
       id: String(row.id),
       ideaId:
-        row.idea_id != null
-          ? String(row.idea_id)
+        row.ideaId != null
+          ? String(row.ideaId)
+          : row.idea_id != null
+            ? String(row.idea_id)
           : row.description
             ? String(row.description)
             : String(row.id),
@@ -205,6 +215,57 @@ export async function createAssignment(ideaId: string, judgeIds: string[]): Prom
     body: JSON.stringify({ ideaId, judgeIds }),
     headers: { "Content-Type": CONTENT_TYPE_JSON },
   });
+}
+
+export type IdeaRankingRow = {
+  ideaId: string;
+  title: string;
+  track?: string | null;
+  submittedAt?: string | null;
+  averageScore: number | null;
+  completedCount: number;
+  totalAssignments: number;
+  latestActivity?: string | null;
+  judges: Array<{
+    assignmentId: string;
+    judgeId: string | null;
+    judgeName?: string | null;
+    judgeUsername?: string | null;
+    status?: string | null;
+    score: number | null;
+    decisionAt?: string | null;
+    evaluation?: unknown;
+  }>;
+};
+
+export async function getIdeaRanking(): Promise<IdeaRankingRow[]> {
+  return api<IdeaRankingRow[]>(`/api/admin/ideas/ranking`);
+}
+
+export type AdminDashboardEvent = {
+  id: string;
+  type: "idea_submitted" | "evaluation_completed";
+  timestamp: string | null;
+  ideaId?: string | null;
+  ideaTitle?: string | null;
+  judgeName?: string | null;
+  judgeUsername?: string | null;
+  score?: number | null;
+};
+
+export type AdminDashboardSummary = {
+  totals: {
+    totalIdeas: number;
+    assignedIdeas: number;
+    unassignedIdeas: number;
+    completedEvaluations: number;
+  };
+  events: AdminDashboardEvent[];
+  lastUpdated: string;
+};
+
+export async function getAdminDashboardSummary(): Promise<AdminDashboardSummary> {
+  return api<AdminDashboardSummary>(`/api/admin/dashboard/summary`);
 }
 
 /* ------------------------------------------------------------------ */

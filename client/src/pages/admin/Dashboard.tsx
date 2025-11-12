@@ -1,7 +1,18 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { listIdeas, listJudges, listAssignments } from "../../api";
-import type { Idea, Judge, Assignment } from "../../api";
+import {
+  getAdminDashboardSummary,
+  listIdeas,
+  listJudges,
+  listAssignments,
+} from "../../api";
+import type {
+  Idea,
+  Judge,
+  Assignment,
+  AdminDashboardSummary,
+  AdminDashboardEvent,
+} from "../../api";
 import s from "../../styles/panel.module.scss";
 
 export default function Dashboard() {
@@ -9,6 +20,8 @@ export default function Dashboard() {
   const [ideas, setIdeas] = useState<Idea[] | null>(null);
   const [judges, setJudges] = useState<Judge[] | null>(null);
   const [assigns, setAssigns] = useState<Assignment[] | null>(null);
+  const [summary, setSummary] = useState<AdminDashboardSummary | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
 
   useEffect(() => {
     listIdeas().then(setIdeas).catch(()=>setIdeas([]));
@@ -16,10 +29,30 @@ export default function Dashboard() {
     listAssignments().then(setAssigns).catch(()=>setAssigns([]));
   }, []);
 
+  const fetchSummary = useCallback(async () => {
+    setSummaryLoading(true);
+    try {
+      const data = await getAdminDashboardSummary();
+      setSummary(data);
+    } catch (error) {
+      console.warn("Failed to load dashboard summary", error);
+    } finally {
+      setSummaryLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSummary();
+    const interval = window.setInterval(fetchSummary, 30000);
+    return () => window.clearInterval(interval);
+  }, [fetchSummary]);
+
+  const summaryTotals = summary?.totals;
+
   const totals = {
-    ideas: ideas?.length || 0,
+    ideas: summaryTotals?.totalIdeas ?? ideas?.length ?? 0,
     judges: judges?.length || 0,
-    assignments: assigns?.length || 0,
+    assignments: summaryTotals?.assignedIdeas ?? assigns?.length ?? 0,
   };
 
   const ideasByStatus = useMemo(() => {
@@ -40,11 +73,49 @@ export default function Dashboard() {
     return sortedKeys.map(k => ({ label: k, value: buckets.get(k) || 0 }));
   }, [ideas]);
 
-  const unassignedCount = useMemo(() => {
-    if (!ideas) return 0;
-    const assignedIdeaIds = new Set((assigns || []).map(a => a.ideaId));
-    return ideas.filter(i => !assignedIdeaIds.has(i.id)).length;
-  }, [ideas, assigns]);
+  const notificationEvents: AdminDashboardEvent[] = summary?.events ?? [];
+  const lastUpdatedLabel = useMemo(() => {
+    if (!summary?.lastUpdated) return null;
+    try {
+      return new Date(summary.lastUpdated).toLocaleString();
+    } catch {
+      return summary.lastUpdated;
+    }
+  }, [summary?.lastUpdated]);
+
+  const notificationStats = useMemo(
+    () => [
+      {
+        key: "totalIdeas",
+        label: t("admin.dashboard.notifications.stats.totalIdeas"),
+        value: summaryTotals?.totalIdeas ?? 0,
+        accent: "rgba(59,130,246,0.25)",
+        emoji: "📚",
+      },
+      {
+        key: "assignedIdeas",
+        label: t("admin.dashboard.notifications.stats.assignedIdeas"),
+        value: summaryTotals?.assignedIdeas ?? 0,
+        accent: "rgba(34,197,94,0.25)",
+        emoji: "🧑‍⚖️",
+      },
+      {
+        key: "unassignedIdeas",
+        label: t("admin.dashboard.notifications.stats.unassignedIdeas"),
+        value: summaryTotals?.unassignedIdeas ?? Math.max((ideas?.length || 0) - (assigns?.length || 0), 0),
+        accent: "rgba(239,68,68,0.2)",
+        emoji: "⚠️",
+      },
+      {
+        key: "completedEvaluations",
+        label: t("admin.dashboard.notifications.stats.completedEvaluations"),
+        value: summaryTotals?.completedEvaluations ?? 0,
+        accent: "rgba(14,165,233,0.25)",
+        emoji: "✅",
+      },
+    ],
+    [summaryTotals, ideas?.length, assigns?.length, t]
+  );
 
   // Simple bar and line chart render helpers
   const BarChart = ({ data }: { data: { label: string; value: number }[] }) => {
@@ -139,14 +210,121 @@ export default function Dashboard() {
             {(ideas || []).length === 0 && <div className={s.muted}>{t("admin.dashboard.recent.empty")}</div>}
           </div>
         </div></div>
-        <div className={s.card}><div className={s.cardBody}>
-          <div style={{ fontWeight: 700, marginBottom: 8 }}>{t("admin.dashboard.notifications.title")}</div>
-          <div style={{ display: "grid", gap: 8 }}>
-            <div style={{ border: "1px solid var(--panel-border)", borderRadius: 10, padding: 10, background: "rgba(239,68,68,.08)" }}>
-              <strong>{unassignedCount}</strong> {t("admin.dashboard.notifications.unassigned")}
+        <div style={{ position: "relative" }}>
+          <div
+            className={s.card}
+            style={{ position: "sticky", top: 16 }}
+          >
+            <div className={s.cardBody} style={{ display: "grid", gap: 16 }}>
+              <div style={{ fontWeight: 700 }}>{t("admin.dashboard.notifications.title")}</div>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+                  gap: 10,
+                }}
+              >
+                {notificationStats.map((stat) => (
+                  <div
+                    key={stat.key}
+                    style={{
+                      borderRadius: 12,
+                      padding: "12px 14px",
+                      background: stat.accent,
+                      display: "grid",
+                      gap: 6,
+                      minHeight: 80,
+                    }}
+                  >
+                    <span style={{ fontSize: 18 }}>{stat.emoji}</span>
+                    <span style={{ fontSize: 13, color: "var(--panel-muted)" }}>
+                      {stat.label}
+                    </span>
+                    <span style={{ fontSize: 22, fontWeight: 700 }}>{stat.value}</span>
+                  </div>
+                ))}
+              </div>
+              <div
+                style={{
+                  borderTop: "1px solid var(--panel-border)",
+                  paddingTop: 12,
+                  display: "grid",
+                  gap: 10,
+                }}
+              >
+                <div style={{ fontWeight: 700 }}>
+                  {t("admin.dashboard.notifications.feedTitle")}
+                </div>
+                {summaryLoading ? (
+                  <div className={s.muted}>
+                    {t("admin.dashboard.notifications.loading")}
+                  </div>
+                ) : notificationEvents.length === 0 ? (
+                  <div className={s.muted}>
+                    {t("admin.dashboard.notifications.empty")}
+                  </div>
+                ) : (
+                  notificationEvents.map((event) => {
+                    const icon = event.type === "evaluation_completed" ? "✅" : "🆕";
+                    const judgeLabel =
+                      event.judgeName ||
+                      event.judgeUsername ||
+                      t("admin.dashboard.notifications.events.unknownJudge");
+                    const ideaLabel =
+                      event.ideaTitle ||
+                      t("admin.dashboard.notifications.events.untitledIdea");
+                    const description =
+                      event.type === "evaluation_completed"
+                        ? t("admin.dashboard.notifications.events.evaluationCompleted", {
+                            title: ideaLabel,
+                            judge: judgeLabel,
+                          })
+                        : t("admin.dashboard.notifications.events.ideaSubmitted", {
+                            title: ideaLabel,
+                          });
+                    const timestamp = event.timestamp
+                      ? new Date(event.timestamp).toLocaleString()
+                      : t("admin.dashboard.notifications.events.unknownTime");
+                    return (
+                      <div
+                        key={event.id}
+                        style={{
+                          border: "1px solid var(--panel-border)",
+                          borderRadius: 12,
+                          padding: "10px 12px",
+                          display: "grid",
+                          gap: 4,
+                          background:
+                            event.type === "evaluation_completed"
+                              ? "rgba(16,185,129,0.12)"
+                              : "rgba(59,130,246,0.12)",
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <span style={{ fontSize: 18 }}>{icon}</span>
+                          <strong>{ideaLabel}</strong>
+                        </div>
+                        <div className={s.muted} style={{ fontSize: 13 }}>
+                          {description}
+                        </div>
+                        <div style={{ fontSize: 12, color: "var(--panel-muted)" }}>
+                          {timestamp}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+              {lastUpdatedLabel && (
+                <div className={s.muted} style={{ fontSize: 12, justifySelf: "end" }}>
+                  {t("admin.dashboard.notifications.lastUpdated", {
+                    time: lastUpdatedLabel,
+                  })}
+                </div>
+              )}
             </div>
           </div>
-        </div></div>
+        </div>
       </div>
     </div>
   );
