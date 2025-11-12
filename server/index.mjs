@@ -29,6 +29,9 @@ const sanitizeFilenameComponent = (value) => {
     .slice(0, 100);
 };
 
+const fsp = fs.promises;
+const uploadsRoot = path.resolve("./uploads");
+
 const toPublicPath = (p) =>
   p
     ? `/${String(p)
@@ -45,6 +48,81 @@ const safeParseJSON = (value, fallback = null) => {
     return fallback;
   }
 };
+
+const normalizeUploadPath = (p) => {
+  if (!p) return null;
+  const trimmed = String(p).replace(/^[\\/]+/, "");
+  const normalized = path.normalize(trimmed);
+  const absolute = path.resolve("./", normalized);
+  if (!absolute.startsWith(uploadsRoot)) {
+    console.warn("Skipped deleting file outside uploads directory:", absolute);
+    return null;
+  }
+  return absolute;
+};
+
+async function deleteFileIfExists(filePath) {
+  if (!filePath) return;
+  try {
+    await fsp.unlink(filePath);
+  } catch (err) {
+    if (err && err.code !== "ENOENT") {
+      console.warn("Failed to delete file:", filePath, err);
+    }
+  }
+}
+
+async function deleteIdeaCascade(ideaId) {
+  const ideaRow = await db.get(
+    `SELECT id, file_path FROM ideas WHERE id = ?`,
+    [Number(ideaId)]
+  );
+  if (!ideaRow) {
+    return false;
+  }
+
+  const assignmentRows = await db.all(
+    `SELECT id, pdf_path FROM judge_projects WHERE idea_id = ?`,
+    [Number(ideaId)]
+  );
+
+  const filesToDelete = [];
+  if (ideaRow.file_path) {
+    try {
+      const parsed = JSON.parse(ideaRow.file_path);
+      if (parsed?.pdf) {
+        const resolvedPdf = normalizeUploadPath(parsed.pdf);
+        if (resolvedPdf) filesToDelete.push(resolvedPdf);
+      }
+      if (parsed?.word) {
+        const resolvedWord = normalizeUploadPath(parsed.word);
+        if (resolvedWord) filesToDelete.push(resolvedWord);
+      }
+    } catch (err) {
+      console.warn("Failed to parse idea file_path for deletion", ideaRow.id, err);
+    }
+  }
+
+  for (const row of assignmentRows) {
+    if (row?.pdf_path) {
+      const resolvedPdf = normalizeUploadPath(row.pdf_path);
+      if (resolvedPdf) filesToDelete.push(resolvedPdf);
+    }
+  }
+
+  await db.run("BEGIN");
+  try {
+    await db.run(`DELETE FROM judge_projects WHERE idea_id = ?`, [Number(ideaId)]);
+    await db.run(`DELETE FROM ideas WHERE id = ?`, [Number(ideaId)]);
+    await db.run("COMMIT");
+  } catch (err) {
+    await db.run("ROLLBACK");
+    throw err;
+  }
+
+  await Promise.all(filesToDelete.map((fp) => deleteFileIfExists(fp)));
+  return true;
+}
 
 
 const storage = multer.diskStorage({
@@ -1027,6 +1105,39 @@ app.get("/api/users", ensureAdmin, async (req, res) => {
   }
 });
 
+app.delete("/api/users/:id", ensureAdmin, async (req, res) => {
+  const { id } = req.params;
+  const numericId = Number(id);
+  if (!Number.isFinite(numericId)) {
+    return res.status(400).json({ error: "Invalid user id" });
+  }
+  try {
+    const user = await db.get(`SELECT id FROM users WHERE id = ?`, [numericId]);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const userIdeas = await db.all(
+      `SELECT id FROM ideas WHERE user_id = ?`,
+      [numericId]
+    );
+
+    for (const idea of userIdeas) {
+      try {
+        await deleteIdeaCascade(idea.id);
+      } catch (err) {
+        console.error("Failed to cascade delete idea while deleting user", idea.id, err);
+      }
+    }
+
+    await db.run(`DELETE FROM users WHERE id = ?`, [numericId]);
+    res.json({ ok: true, deletedIdeas: userIdeas.length });
+  } catch (e) {
+    console.error("admin delete user error", e);
+    res.status(500).json({ error: "Failed to delete user" });
+  }
+});
+
 
 // List all ideas (admin only)
 app.get("/api/ideas", ensureAdmin, async (req, res) => {
@@ -1184,6 +1295,24 @@ app.get("/api/ideas/:id", ensureAdmin, async (req, res) => {
   } catch (e) {
     console.error("admin get idea error", e);
     res.status(500).json({ error: "Failed to load idea" });
+  }
+});
+
+app.delete("/api/ideas/:id", ensureAdmin, async (req, res) => {
+  const { id } = req.params;
+  const numericId = Number(id);
+  if (!Number.isFinite(numericId)) {
+    return res.status(400).json({ error: "Invalid idea id" });
+  }
+  try {
+    const removed = await deleteIdeaCascade(numericId);
+    if (!removed) {
+      return res.status(404).json({ error: "Idea not found" });
+    }
+    res.json({ ok: true });
+  } catch (e) {
+    console.error("admin delete idea error", e);
+    res.status(500).json({ error: "Failed to delete idea" });
   }
 });
 

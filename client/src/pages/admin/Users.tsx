@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Modal, Tooltip, message } from "antd";
+import { DeleteOutlined } from "@ant-design/icons";
 import {
   getUserProfile,
   listUsers,
   updateUserRole,
   updateUserStatus,
+  deleteUser,
 } from "../../api";
 import type { AdminUser } from "../../api";
 import s from "../../styles/panel.module.scss";
@@ -24,6 +27,8 @@ export default function Users() {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [modal, setModal] = useState<ModalState>(null);
   const [profile, setProfile] = useState<any | null>(null);
+  const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     listUsers()
@@ -99,6 +104,39 @@ export default function Users() {
     }
   }, [modal?.type, modal?.user?.id]);
 
+  const openDeleteModal = (user: AdminUser) => {
+    setUserToDelete(user);
+  };
+
+  const closeDeleteModal = () => {
+    if (deleteLoading) return;
+    setUserToDelete(null);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
+    setDeleteLoading(true);
+    try {
+      await deleteUser(userToDelete.id);
+      setData((prev) => (prev || []).filter((u) => u.id !== userToDelete.id));
+      message.success(
+        t("admin.users.delete.success", {
+          name: userToDelete.name || userToDelete.email,
+          defaultValue: "User deleted",
+        })
+      );
+      setUserToDelete(null);
+    } catch (err) {
+      const errMsg =
+        err instanceof Error
+          ? err.message
+          : t("admin.users.delete.failed", { defaultValue: "Failed to delete user" });
+      message.error(errMsg);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   const roleOptions = [
     { value: "ALL", label: t("admin.users.filters.roles.all") },
     { value: "admin", label: t("admin.users.filters.roles.admin") },
@@ -144,7 +182,7 @@ export default function Users() {
               {/* <th>{t("admin.users.table.headers.lastLogin")}</th> */}
               <th>{t("admin.users.table.headers.ideas")}</th>
               {/* <th>{t("admin.users.table.headers.status")}</th> */}
-              {/* <th>{t("admin.users.table.headers.actions")}</th> */}
+              <th>{t("admin.users.table.headers.actions")}</th>
             </tr>
           </thead>
           <tbody>
@@ -192,6 +230,22 @@ export default function Users() {
                       {t("admin.users.actions.viewProfile")}
                     </button>
                   </td> */}
+                  <td>
+                    <Tooltip
+                      title={t("admin.users.actions.delete", { defaultValue: "Delete user" })}
+                    >
+                      <button
+                        type="button"
+                        className={s.iconButton}
+                        onClick={() => openDeleteModal(u)}
+                        aria-label={t("admin.users.actions.delete", {
+                          defaultValue: "Delete user",
+                        })}
+                      >
+                        <DeleteOutlined />
+                      </button>
+                    </Tooltip>
+                  </td>
                 </tr>
               );
             })}
@@ -356,6 +410,27 @@ export default function Users() {
           </div>
         </div>
       )} */}
+
+      <Modal
+        open={!!userToDelete}
+        title={t("admin.users.delete.title", { defaultValue: "Delete user" })}
+        onCancel={closeDeleteModal}
+        okText={t("admin.users.delete.confirm", { defaultValue: "Delete" })}
+        cancelText={t("admin.users.common.cancel", { defaultValue: "Cancel" })}
+        okButtonProps={{ danger: true, loading: deleteLoading }}
+        onOk={confirmDeleteUser}
+      >
+        <div className={s.stack}>
+          <p>
+            {t("admin.users.delete.description", {
+              name: userToDelete?.name || "",
+              email: userToDelete?.email || "",
+              defaultValue:
+                "Are you sure you want to delete this user? This will remove their ideas as well.",
+            })}
+          </p>
+        </div>
+      </Modal>
     </div>
   );
 }

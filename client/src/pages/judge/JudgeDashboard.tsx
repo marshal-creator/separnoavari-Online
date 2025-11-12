@@ -13,11 +13,22 @@ import {
   message,
   Slider,
   Spin,
+  Switch,
+  Tooltip,
 } from "antd";
-import { CheckCircleOutlined, CloseCircleOutlined, FilePdfOutlined, LogoutOutlined, UserOutlined } from "@ant-design/icons";
+import {
+  BulbOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  FilePdfOutlined,
+  LogoutOutlined,
+  MoonOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
 import api from "../../service/api";
 import panelStyles from "../../styles/panel.module.scss";
 import styles from "./judge-dashboard.module.scss";
+import { useTheme } from "../../contexts/ThemeContext";
 
 type JudgeProject = {
   id: number;
@@ -65,6 +76,7 @@ export default function JudgeDashboard() {
   
   const [ratings, setRatings] = useState<number[]>(() => Array(10).fill(5));
   const [submitting, setSubmitting] = useState(false);
+  const { resolved, toggle } = useTheme();
   
   const statusStyle: Record<string, { label: string; color: string }> = useMemo(() => ({
     APPROVED: { label: t("admin.judge.dashboard.status.approved"), color: "green" },
@@ -184,6 +196,14 @@ export default function JudgeDashboard() {
                 </Typography.Text>
               </Space>
             )}
+            <Tooltip title={resolved === "dark" ? t("theme.light", { defaultValue: "Light" }) : t("theme.dark", { defaultValue: "Dark" })}>
+              <Switch
+                checked={resolved === "dark"}
+                onChange={() => toggle()}
+                checkedChildren={<MoonOutlined />}
+                unCheckedChildren={<BulbOutlined />}
+              />
+            </Tooltip>
             <Button
               type="default"
               icon={<LogoutOutlined />}

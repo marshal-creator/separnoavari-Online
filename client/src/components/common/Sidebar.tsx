@@ -3,8 +3,6 @@ import type { NavLinkProps } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import panelStyles from "../../styles/panel.module.scss";
 import styles from "./sidebar.module.scss";
-import { LanguageSwitcher } from "./LanguageSwitcher";
-import { LogoutButton } from "./LogoutButton";
 
 type SidebarProps = {
   isOpen: boolean;
@@ -55,10 +53,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           ))}
         </ul>
       </nav>
-      <div className={styles.sidebarBottom}>
-        <LanguageSwitcher className={styles.sidebarBtn} />
-        <LogoutButton className={styles.sidebarBtn} />
-      </div>
     </aside>
   );
 }
