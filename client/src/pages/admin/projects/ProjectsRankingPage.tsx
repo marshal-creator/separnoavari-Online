@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Badge,
@@ -45,16 +45,15 @@ export default function ProjectsRankingPage() {
   const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchValue, setSearchValue] = useState("");
+  const persianCollator = useMemo(
+    () => new Intl.Collator("fa", { sensitivity: "base", numeric: true }),
+    []
+  );
 
-  useEffect(() => {
-    loadProjects();
-  }, []);
-
-  async function loadProjects() {
+  const loadProjects = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get<ProjectRow[]>("/admin/projects");
-      // Sort by final_score descending, then by id
       const sorted = (res.data ?? []).sort((a, b) => {
         const scoreA = a.final_score ?? 0;
         const scoreB = b.final_score ?? 0;
@@ -64,12 +63,23 @@ export default function ProjectsRankingPage() {
         return b.id - a.id;
       });
       setProjects(sorted);
-    } catch (error: any) {
-      message.error(error?.response?.data?.error || t("admin.ranking.failedLoadProjects") || "Failed to load projects");
+    } catch (error: unknown) {
+      let errorMessage = t("admin.ranking.failedLoadProjects") || "Failed to load projects";
+      if (typeof error === "object" && error !== null) {
+        const maybe = error as { response?: { data?: { error?: string } } };
+        if (maybe.response?.data?.error) {
+          errorMessage = maybe.response.data.error;
+        }
+      }
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }
-  }
+  }, [t]);
+
+  useEffect(() => {
+    loadProjects();
+  }, [loadProjects]);
 
   // Add rank to each project based on its position in the sorted list
   const projectsWithRank = useMemo(() => {
@@ -137,6 +147,9 @@ export default function ProjectsRankingPage() {
         title: t("admin.ranking.columns.title"),
         dataIndex: "description",
         key: "description",
+        sorter: (a, b) =>
+          persianCollator.compare(a.description || "", b.description || ""),
+        sortDirections: ["ascend", "descend"],
         render: (value: string, record) => {
           const rank = record.rank ?? 0;
           const badge = getRankBadge(rank);
@@ -158,6 +171,12 @@ export default function ProjectsRankingPage() {
         title: t("admin.ranking.columns.judge"),
         key: "judge",
         width: 220,
+        sorter: (a, b) =>
+          persianCollator.compare(
+            a.judgeName || a.judgeUsername || "",
+            b.judgeName || b.judgeUsername || ""
+          ),
+        sortDirections: ["ascend", "descend"],
         render: (_, record) => {
           if (record.judgeName) {
             return (
@@ -251,7 +270,7 @@ export default function ProjectsRankingPage() {
         ),
       },
     ],
-    [t]
+    [t, persianCollator]
   );
 
   return (

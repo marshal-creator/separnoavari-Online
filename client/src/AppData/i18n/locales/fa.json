@@ -27,7 +27,8 @@
     "english": "انگلیسی",
     "persian": "فارسی",
     "openMenu": "باز کردن منو",
-    "closeMenu": "بستن منو"
+    "closeMenu": "بستن منو",
+    "back": "بازگشت"
   },
 
   "adminMenu": {
@@ -255,7 +256,9 @@
       "logout": "خروج از حساب",
       "language": "زبان",
       "english": "انگلیسی",
-      "persian": "فارسی"
+      "persian": "فارسی",
+      "id": "شناسه",
+      "untitled": "بدون عنوان"
     },
     "topbar": {
       "title": "پنل ادمین"
@@ -353,7 +356,15 @@
       "search": "جستجو",
       "track": "محور",
       "date": "تاریخ ثبت",
-      "file": "فایل ها"
+      "file": "فایل ها",
+      "submitterName": "ارسال‌کننده",
+      "submitterUsername": "نام کاربری",
+      "assignmentsSection": "داوران تخصیص‌یافته",
+      "noAssignments": "هنوز داوری برای این ایده ثبت نشده است.",
+      "noTeamMembers": "اعضای تیم ثبت نشده‌اند.",
+      "openBrief": "باز کردن PDF",
+      "unknownJudge": "داور ناشناس",
+      "detailLoadError": "بارگذاری جزئیات ایده ممکن نشد."
     },
     "dashboard": {
       "title": "داشبورد",
@@ -527,14 +538,21 @@
           "actions": "عملیات",
           "view": "مشاهده",
           "assign": "تخصیص",
+        "delete": "حذف",
           "drawerTitle": "داور",
           "loadingProjects": "در حال بارگذاری پروژه‌ها…",
           "noProjectsAssigned": "پروژه‌ای تخصیص نیافته",
           "project": "پروژه",
           "score": "امتیاز",
           "openPdf": "باز کردن PDF",
-          "failedLoadJudges": "خطا در بارگذاری داوران",
-          "failedLoadProjects": "خطا در بارگذاری پروژه‌ها"
+        "failedLoadJudges": "خطا در بارگذاری داوران",
+        "failedLoadProjects": "خطا در بارگذاری پروژه‌ها",
+        "deleteTitle": "حذف داور",
+        "deleteDescription": "برای تایید حذف، نام کاربری داور را وارد کنید.",
+        "deletePlaceholder": "نام کاربری داور را وارد کنید",
+        "deleteConfirm": "حذف",
+        "deleteSuccess": "داور حذف شد",
+        "deleteFailed": "حذف داور ناموفق بود"
         },
         "judgeCreatePage": {
           "title": "ایجاد داور",

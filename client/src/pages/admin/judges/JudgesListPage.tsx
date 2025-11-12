@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -6,14 +6,17 @@ import {
   Card,
   Drawer,
   Empty,
+  Modal,
   Space,
   Table,
   Tag,
   Typography,
+  Input,
   message,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import {
+  DeleteOutlined,
   EyeOutlined,
   FileOutlined,
   PlusOutlined,
@@ -61,24 +64,70 @@ export default function JudgesListPage() {
   const [projects, setProjects] = useState<JudgeProject[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [judgeToDelete, setJudgeToDelete] = useState<AdminJudge | null>(null);
+  const [deleteInput, setDeleteInput] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
-    loadJudges();
-  }, []);
-
-  async function loadJudges() {
+  const loadJudges = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get<AdminJudge[]>("/admin/judges");
       setJudges(res.data ?? []);
-    } catch (error: any) {
-      message.error(error?.response?.data?.error || t("admin.judges.pages.judgesListPage.failedLoadJudges"));
+    } catch (error: unknown) {
+      let errMsg =
+        t("admin.judges.pages.judgesListPage.failedLoadJudges") || "Failed to load judges";
+      if (typeof error === "object" && error !== null) {
+        const maybe = error as { response?: { data?: { error?: string } } };
+        if (maybe.response?.data?.error) {
+          errMsg = maybe.response.data.error;
+        }
+      }
+      message.error(errMsg);
     } finally {
       setLoading(false);
     }
+  }, [t]);
+
+  useEffect(() => {
+    loadJudges();
+  }, [loadJudges]);
+
+  function openDeleteModal(judge: AdminJudge) {
+    setJudgeToDelete(judge);
+    setDeleteInput("");
+    setDeleteModalOpen(true);
   }
 
-  async function openJudgeDrawer(judge: AdminJudge) {
+  const handleDeleteJudge = useCallback(async () => {
+    if (!judgeToDelete) return;
+    setDeleting(true);
+    try {
+      await api.delete(`/admin/judges/${judgeToDelete.id}`);
+      message.success(
+        t("admin.judges.pages.judgesListPage.deleteSuccess", { defaultValue: "Judge removed" })
+      );
+      setDeleteModalOpen(false);
+      setJudgeToDelete(null);
+      loadJudges();
+    } catch (error: unknown) {
+      let errMsg =
+        t("admin.judges.pages.judgesListPage.deleteFailed", {
+          defaultValue: "Failed to delete judge",
+        }) || "Failed to delete judge";
+      if (typeof error === "object" && error !== null) {
+        const maybe = error as { response?: { data?: { error?: string } } };
+        if (maybe.response?.data?.error) {
+          errMsg = maybe.response.data.error;
+        }
+      }
+      message.error(errMsg);
+    } finally {
+      setDeleting(false);
+    }
+  }, [judgeToDelete, loadJudges, t]);
+
+  const openJudgeDrawer = useCallback(async (judge: AdminJudge) => {
     setSelectedJudge(judge);
     setDrawerOpen(true);
     setProjects([]);
@@ -86,12 +135,21 @@ export default function JudgesListPage() {
     try {
       const res = await api.get<JudgeProject[]>(`/admin/judges/${judge.id}/projects`);
       setProjects(res.data ?? []);
-    } catch (error: any) {
-      message.error(error?.response?.data?.error || t("admin.judges.pages.judgesListPage.failedLoadProjects"));
+    } catch (error: unknown) {
+      let errMsg =
+        t("admin.judges.pages.judgesListPage.failedLoadProjects") ||
+        "Failed to load projects";
+      if (typeof error === "object" && error !== null) {
+        const maybe = error as { response?: { data?: { error?: string } } };
+        if (maybe.response?.data?.error) {
+          errMsg = maybe.response.data.error;
+        }
+      }
+      message.error(errMsg);
     } finally {
       setProjectsLoading(false);
     }
-  }
+  }, [t]);
 
   const columns: ColumnsType<AdminJudge> = useMemo(
     () => [
@@ -137,11 +195,19 @@ export default function JudgesListPage() {
             >
               {t("admin.judges.pages.judgesListPage.assign")}
             </Button>
+            <Button
+              type="link"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => openDeleteModal(record)}
+            >
+              {t("admin.judges.pages.judgesListPage.delete", { defaultValue: "Delete" })}
+            </Button>
           </Space>
         ),
       },
     ],
-    [t, navigate]
+    [t, navigate, openJudgeDrawer]
   );
 
   return (
@@ -174,6 +240,44 @@ export default function JudgesListPage() {
           sticky
         />
       </Card>
+
+      <Modal
+        title={t("admin.judges.pages.judgesListPage.deleteTitle", { defaultValue: "Delete judge" })}
+        open={deleteModalOpen}
+        onCancel={() => {
+          setDeleteModalOpen(false);
+          setJudgeToDelete(null);
+        }}
+        okButtonProps={{
+          danger: true,
+          disabled:
+            !judgeToDelete || deleteInput.trim() !== judgeToDelete.username,
+        }}
+        okText={t("admin.judges.pages.judgesListPage.deleteConfirm", { defaultValue: "Delete" })}
+        cancelText={t("common.back")}
+        confirmLoading={deleting}
+        onOk={handleDeleteJudge}
+      >
+        <Space direction="vertical" size={12} style={{ width: "100%" }}>
+          <Typography.Paragraph>
+            {t("admin.judges.pages.judgesListPage.deleteDescription", {
+              defaultValue: "Type the username to confirm deletion of this judge.",
+            })}
+          </Typography.Paragraph>
+          {judgeToDelete && (
+            <Typography.Text strong>
+              {judgeToDelete.name} — {judgeToDelete.username}
+            </Typography.Text>
+          )}
+          <Input
+            value={deleteInput}
+            onChange={(e) => setDeleteInput(e.target.value)}
+            placeholder={t("admin.judges.pages.judgesListPage.deletePlaceholder", {
+              defaultValue: "Enter judge username",
+            })}
+          />
+        </Space>
+      </Modal>
 
       <Drawer
         title={selectedJudge ? `${selectedJudge.name} • ${selectedJudge.username}` : t("admin.judges.pages.judgesListPage.drawerTitle")}

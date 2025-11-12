@@ -11,6 +11,7 @@ export interface FirstMyIdeaType {
   file_path: string | null;
   submitted_at: string;
   updated_at: string;
+  status?: string;
 }
 
 export interface MyIdeaType {

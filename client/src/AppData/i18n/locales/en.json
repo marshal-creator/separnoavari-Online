@@ -27,7 +27,8 @@
     "english": "English",
     "persian": "Persian",
     "openMenu": "Open Menu",
-    "closeMenu": "Close Menu"
+    "closeMenu": "Close Menu",
+    "back": "Back"
   },
 
   "adminMenu": {
@@ -37,6 +38,40 @@
     "assignments": "Assignments",
     "ranking": "Project Ranking",
     "users": "Users"
+  },
+
+  "admin": {
+    "common": {
+      "id": "ID",
+      "untitled": "Untitled",
+      "logout": "Log out",
+      "language": "Language",
+      "english": "English",
+      "persian": "Persian"
+    },
+    "ideas": {
+      "title": "Ideas",
+      "empty": "No ideas found.",
+      "searchInIdeas": "Search ideas",
+      "search": "Search",
+      "track": "Track",
+      "date": "Submitted",
+      "file": "Files",
+      "submitterName": "Submitter",
+      "submitterUsername": "Username",
+      "assignmentsSection": "Assigned Judges",
+      "noAssignments": "No judge assignments recorded yet.",
+      "noTeamMembers": "No team members were provided.",
+      "openBrief": "Open PDF",
+      "unknownJudge": "Unknown judge",
+      "detailLoadError": "Unable to load idea details."
+    },
+    "status": {
+      "underReview": "Under review",
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "rejected": "Rejected"
+    }
   },
 
   "countdown": {

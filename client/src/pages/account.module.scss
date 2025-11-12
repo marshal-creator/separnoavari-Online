@@ -1,174 +1,234 @@
-﻿html{
-  font-family: "Peyda";
-
+﻿:root {
+  --account-bg: var(--ant-color-bg-layout, #f4f5f7);
+  --account-card-bg: var(--ant-color-bg-container, #ffffff);
+  --account-border: rgba(148, 163, 184, 0.28);
+  --account-border-strong: rgba(148, 163, 184, 0.42);
+  --account-muted: rgba(71, 85, 105, 0.72);
 }
 
-.main{
-  width: 100%;
-}
-
-.page {
+.account {
   min-height: 100vh;
-  padding: clamp(16px, 4vw, 48px) clamp(16px, 5vw, 72px);
-  background-color: var(--ant-color-bg-layout, #f5f6f8);
-  transition: background-color 0.3s ease;
+  padding: clamp(20px, 4vw, 48px) clamp(16px, 5vw, 72px);
+  background: var(--account-bg);
+  transition: background 0.24s ease;
 }
 
-.container {
-  margin: 0 auto;
-  width: min(1080px, 100%);
-  
+.headerRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: clamp(24px, 5vw, 40px);
 }
 
-.hero,
-.section {
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: clamp(20px, 3vw, 32px);
+  background: var(--account-card-bg);
   border-radius: 20px;
-  background-color: var(--ant-color-bg-container, #ffffff);
-  box-shadow: var(--ant-box-shadow-secondary, 0 10px 30px rgba(15, 23, 42, 0.08));
-  border: 1px solid var(--ant-color-border-secondary, rgba(15, 23, 42, 0.08));
+  border: 1px solid var(--account-border);
+  box-shadow: 0 18px 40px -24px rgba(15, 23, 42, 0.35);
 }
 
-.heroContent {
+.blockHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.listGridWrapper {
+  display: grid;
+  gap: clamp(16px, 2vw, 24px);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.card {
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-
-.adminButton {
-  border-radius: 8px;
-}
-
-.adminButton :global(svg) {
-  vertical-align: middle;
-}
-
-@media (min-width: 640px) {
-  .heroContent {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-  }
-}
-
-.heroText {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.heroTitle {
-  margin: 0;
-}
-
-.stateWrapper {
-  display: grid;
-  place-items: center;
-  padding: clamp(32px, 6vw, 72px);
-}
-
-.alert {
-  margin-bottom: 16px;
-}
-
-.ideaGrid {
-  display: grid;
-  gap: 20px;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  
-}
-
-.ideaCard {
-  border-radius: 16px;
-  background-color: var(--ant-color-bg-container, #ffffff);
-  border: 1px solid var(--ant-color-border, rgba(148, 163, 184, 0.24));
-  box-shadow: var(--ant-box-shadow-secondary, 0 10px 30px rgba(15, 23, 42, 0.08));
   height: 100%;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
+  padding: clamp(18px, 3vw, 26px);
+  background: var(--account-card-bg);
+  border-radius: 18px;
+  border: 1px solid var(--account-border);
+  box-shadow: 0 14px 32px -20px rgba(15, 23, 42, 0.4);
+  transition: box-shadow 0.24s ease, transform 0.24s ease, border-color 0.24s ease;
 }
 
-.ideaHeader {
-  display: block;
-  flex-wrap: wrap;
-  align-items: baseline;
+.card:hover,
+.card:focus-within {
+  border-color: var(--account-border-strong);
+  transform: translateY(-2px);
+  box-shadow: 0 18px 44px -20px rgba(15, 23, 42, 0.38);
+}
+
+.cardHead {
+  display: flex;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  font-family: "Peyda";
-
-  
 }
 
-.accountcardtrack{
+.cardTitleWrap {
   display: flex;
-  max-width: 90%;
-  color: var(--bg);
-  background: var(--muted);
-  border-radius: 15px;
-  border: 0 2px var(--ant-color-border-secondary);
-  justify-content: center;
-  align-items: center;
-  padding: 0.5rem 1rem;
-  margin: 0.5rem 5%;
-  font-weight: 700;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.ideaTitle {
+.cardTitle {
   margin: 0;
-  flex: 1;
-  min-width: 0;
+  font-size: 1.1rem;
+  line-height: 1.4;
+  font-weight: 700;
+  color: var(--ant-color-text, #0f172a);
 }
 
 .summary {
-  display: block;
-  color: inherit;
-  white-space: pre-wrap;
+  margin: 0;
+  color: var(--ant-color-text-secondary, var(--account-muted));
+  line-height: 1.6;
+  max-height: 7.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
 }
 
-.metaGrid {
+.metaList {
   display: grid;
-  gap: 14px;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  font-size: 0.92rem;
 }
 
-.metaItem {
+.metaWrapper {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-  overflow-wrap: anywhere;
+  flex-wrap: wrap;
+  gap: 6px;
+  color: var(--ant-color-text-secondary, var(--account-muted));
 }
 
-@media (prefers-color-scheme: dark) {
-  .page {
-    background-color: #0b1220;
-  }
+.metaKey {
+  font-weight: 600;
+  color: var(--ant-color-text, #1f2937);
 }
 
-.hero :global(.ant-card-body),
-.section :global(.ant-card-body) {
-  padding: clamp(20px, 3vw, 28px);
-}
-
-.ideaCard :global(.ant-card-body) {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: clamp(20px, 3vw, 28px);
-
-  
-}
-
-.ideaCard :global(.ant-typography) {
+.metaVal {
+  color: inherit;
   word-break: break-word;
 }
 
-.ideaCard :global(.ant-tag) {
-  border-radius: 999px;
+.metaValLink {
+  color: var(--primary, #2563eb);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
 }
 
+.metaValLink:hover,
+.metaValLink:focus {
+  color: var(--primary-hover, #1d4ed8);
+  text-decoration: underline;
+}
 
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: rgba(37, 99, 235, 0.1);
+  color: #1d4ed8;
+}
 
-// 
+.statusPending {
+  background: rgba(249, 115, 22, 0.16);
+  color: #ea580c;
+}
 
+.statusReview {
+  background: rgba(14, 165, 233, 0.18);
+  color: #0ea5e9;
+}
 
+.statusAccepted {
+  background: rgba(16, 185, 129, 0.18);
+  color: #059669;
+}
+
+.statusRejected {
+  background: rgba(239, 68, 68, 0.16);
+  color: #dc2626;
+}
+
+.tagTrack :global(.ant-tag) {
+  border-radius: 999px;
+  font-weight: 600;
+  margin-inline-start: auto;
+}
+
+@media (max-width: 640px) {
+  .account {
+    padding: 16px;
+  }
+
+  .card {
+    padding: 18px;
+  }
+
+  .summary {
+    -webkit-line-clamp: 5;
+    max-height: 9rem;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --account-bg: #0b1220;
+    --account-card-bg: rgba(15, 23, 42, 0.92);
+    --account-border: rgba(148, 163, 184, 0.24);
+    --account-border-strong: rgba(148, 163, 184, 0.4);
+    --account-muted: rgba(203, 213, 225, 0.76);
+  }
+
+  .card {
+    box-shadow: 0 18px 40px -28px rgba(0, 0, 0, 0.78);
+  }
+
+  .card:hover,
+  .card:focus-within {
+    box-shadow: 0 16px 44px -22px rgba(0, 0, 0, 0.8);
+  }
+
+  .statusPill {
+    background: rgba(37, 99, 235, 0.2);
+  }
+
+  .statusPending {
+    background: rgba(251, 146, 60, 0.24);
+  }
+
+  .statusReview {
+    background: rgba(56, 189, 248, 0.24);
+  }
+
+  .statusAccepted {
+    background: rgba(52, 211, 153, 0.24);
+  }
+
+  .statusRejected {
+    background: rgba(248, 113, 113, 0.24);
+  }
+}

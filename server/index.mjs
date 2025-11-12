@@ -181,6 +181,9 @@ async function ensureJudgeProjectSchema() {
   if (!has.has("decision_at")) {
     await db.exec(`ALTER TABLE judge_projects ADD COLUMN decision_at DATETIME`);
   }
+  if (!has.has("idea_id")) {
+    await db.exec(`ALTER TABLE judge_projects ADD COLUMN idea_id INTEGER`);
+  }
 }
 
 // Start server only after DB is ready to avoid race conditions
@@ -507,6 +510,27 @@ app.get("/api/admin/judges", ensureAdmin, async (req, res) => {
   }
 });
 
+// Delete judge (and cascade their projects)
+app.delete("/api/admin/judges/:judgeId", ensureAdmin, async (req, res) => {
+  const { judgeId } = req.params;
+  const idNum = Number(judgeId);
+  if (Number.isNaN(idNum)) {
+    return res.status(400).json({ error: "Invalid judge id" });
+  }
+  try {
+    const judge = await db.get(`SELECT id FROM judges WHERE id = ?`, [idNum]);
+    if (!judge) {
+      return res.status(404).json({ error: "Judge not found" });
+    }
+    await db.run(`DELETE FROM judge_projects WHERE judge_id = ?`, [idNum]);
+    await db.run(`DELETE FROM judges WHERE id = ?`, [idNum]);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error("delete judge error", e);
+    res.status(500).json({ error: "Failed to delete judge" });
+  }
+});
+
 // Admin: overview of all judge projects with scores
 app.get("/api/admin/projects", ensureAdmin, async (req, res) => {
   try {
@@ -558,10 +582,18 @@ app.post(
   },
   async (req, res) => {
     const { judgeId } = req.params;
-    const { description } = req.body || {};
+    const { description, ideaId } = req.body || {};
     const file = req.file;
     if (!description || !file) {
       return res.status(400).json({ error: "Missing description or file" });
+    }
+    let normalizedIdeaId: number | null = null;
+    if (ideaId !== undefined && ideaId !== null && String(ideaId).trim() !== "") {
+      const parsed = Number(ideaId);
+      if (Number.isNaN(parsed)) {
+        return res.status(400).json({ error: "Invalid ideaId" });
+      }
+      normalizedIdeaId = parsed;
     }
     try {
       const judge = await db.get(`SELECT id FROM judges WHERE id = ?`, [Number(judgeId)]);
@@ -571,8 +603,8 @@ app.post(
       const rel = (p) =>
         p ? p.replace(path.resolve("."), "").replace(/\\/g, "/").replace(/^\//, "") : null;
       const r = await db.run(
-        `INSERT INTO judge_projects (judge_id, description, pdf_path, status, final_score, evaluation, decision_at) VALUES (?, ?, ?, 'PENDING', NULL, NULL, NULL)`,
-        [Number(judgeId), String(description), rel(file.path)]
+        `INSERT INTO judge_projects (judge_id, idea_id, description, pdf_path, status, final_score, evaluation, decision_at) VALUES (?, ?, ?, ?, 'PENDING', NULL, NULL, NULL)`,
+        [Number(judgeId), normalizedIdeaId, String(description), rel(file.path)]
       );
       const project = await db.get(`SELECT * FROM judge_projects WHERE id = ?`, [r.lastID]);
       res.status(201).json({
@@ -1000,8 +1032,12 @@ app.get("/api/users", ensureAdmin, async (req, res) => {
 app.get("/api/ideas", ensureAdmin, async (req, res) => {
   try {
     const rows = await db.all(`
-      SELECT *
-      FROM ideas
+      SELECT 
+        i.*,
+        u.email AS user_email,
+        u.name AS user_name
+      FROM ideas i
+      LEFT JOIN users u ON u.id = i.user_id
       ORDER BY submitted_at DESC
     `);
 
@@ -1012,11 +1048,19 @@ app.get("/api/ideas", ensureAdmin, async (req, res) => {
         try {
           const parsed = JSON.parse(row.file_path);
           files = {
-            pdf: parsed?.pdf ? `/${String(parsed.pdf).replace(/^\/+/, "")}` : null,
-            word: parsed?.word ? `/${String(parsed.word).replace(/^\/+/, "")}` : null,
+            pdf: parsed?.pdf ? toPublicPath(parsed.pdf) : null,
+            word: parsed?.word ? toPublicPath(parsed.word) : null,
           };
         } catch (err) {
           console.warn("Failed to parse file_path for idea", row.id, err);
+        }
+      }
+
+      let teamMembers = row.team_members;
+      if (typeof teamMembers === "string") {
+        const trimmed = teamMembers.trim();
+        if (trimmed.startsWith("[") || trimmed.startsWith("{")) {
+          teamMembers = safeParseJSON(trimmed, teamMembers);
         }
       }
 
@@ -1025,8 +1069,9 @@ app.get("/api/ideas", ensureAdmin, async (req, res) => {
         userId: row.user_id,
         contactEmail: row.contact_email || null,
         submitterName: row.submitter_full_name || null,
+        submitterUsername: row.user_email || row.contact_email || null,
         phone: row.phone || null,
-        teamMembers: row.team_members || null,
+        teamMembers,
         title: row.idea_title || "",
         track: row.track || null,
         executiveSummary: row.executive_summary || null,
@@ -1034,6 +1079,8 @@ app.get("/api/ideas", ensureAdmin, async (req, res) => {
         submittedAt: row.submitted_at,
         updatedAt: row.updated_at ?? null,
         scoreAvg: row.score_avg ?? null,
+        userEmail: row.user_email || null,
+        userName: row.user_name || null,
         files,
       };
     });
@@ -1042,6 +1089,101 @@ app.get("/api/ideas", ensureAdmin, async (req, res) => {
   } catch (e) {
     console.error("admin list ideas error", e);
     res.status(500).json({ error: "Failed to load ideas" });
+  }
+});
+
+app.get("/api/ideas/:id", ensureAdmin, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const ideaRow = await db.get(
+      `
+        SELECT 
+          i.*,
+          u.email AS user_email,
+          u.name AS user_name
+        FROM ideas i
+        LEFT JOIN users u ON u.id = i.user_id
+        WHERE i.id = ?
+      `,
+      [Number(id)]
+    );
+    if (!ideaRow) {
+      return res.status(404).json({ error: "Idea not found" });
+    }
+
+    let files = { pdf: null, word: null };
+    if (ideaRow.file_path) {
+      try {
+        const parsed = JSON.parse(ideaRow.file_path);
+        files = {
+          pdf: parsed?.pdf ? toPublicPath(parsed.pdf) : null,
+          word: parsed?.word ? toPublicPath(parsed.word) : null,
+        };
+      } catch (err) {
+        console.warn("Failed to parse file_path for idea detail", ideaRow.id, err);
+      }
+    }
+
+    let teamMembers = ideaRow.team_members;
+    if (typeof teamMembers === "string") {
+      const trimmed = teamMembers.trim();
+      if (trimmed.startsWith("[") || trimmed.startsWith("{")) {
+        teamMembers = safeParseJSON(trimmed, teamMembers);
+      }
+    }
+
+    const assignments = await db.all(
+      `
+        SELECT 
+          p.*,
+          j.name AS judge_name,
+          j.username AS judge_username
+        FROM judge_projects p
+        LEFT JOIN judges j ON j.id = p.judge_id
+        WHERE p.idea_id = ?
+        ORDER BY p.created_at DESC
+      `,
+      [Number(id)]
+    );
+
+    const assignmentDto = assignments.map((row) => ({
+      id: row.id,
+      judgeId: row.judge_id,
+      judgeName: row.judge_name || null,
+      judgeUsername: row.judge_username || null,
+      status: row.status || "PENDING",
+      description: row.description || null,
+      finalScore: row.final_score ?? null,
+      evaluation: safeParseJSON(row.evaluation),
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      decisionAt: row.decision_at,
+      pdfUrl: toPublicPath(row.pdf_path),
+    }));
+
+    res.json({
+      id: String(ideaRow.id),
+      userId: ideaRow.user_id,
+      contactEmail: ideaRow.contact_email || null,
+      submitterName: ideaRow.submitter_full_name || null,
+      submitterUsername: ideaRow.user_email || ideaRow.contact_email || null,
+      phone: ideaRow.phone || null,
+      teamMembers,
+      title: ideaRow.idea_title || "",
+      track: ideaRow.track || null,
+      executiveSummary: ideaRow.executive_summary || null,
+      status: ideaRow.status ?? "PENDING",
+      submittedAt: ideaRow.submitted_at,
+      updatedAt: ideaRow.updated_at ?? null,
+      scoreAvg: ideaRow.score_avg ?? null,
+      files,
+      userEmail: ideaRow.user_email || null,
+      userName: ideaRow.user_name || null,
+      assignments: assignmentDto,
+    });
+  } catch (e) {
+    console.error("admin get idea error", e);
+    res.status(500).json({ error: "Failed to load idea" });
   }
 });
 

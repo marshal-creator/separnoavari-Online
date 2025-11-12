@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -16,6 +16,8 @@ import {
 } from "antd";
 import { CheckCircleOutlined, CloseCircleOutlined, FilePdfOutlined, LogoutOutlined, UserOutlined } from "@ant-design/icons";
 import api from "../../service/api";
+import panelStyles from "../../styles/panel.module.scss";
+import styles from "./judge-dashboard.module.scss";
 
 type JudgeProject = {
   id: number;
@@ -71,7 +73,7 @@ export default function JudgeDashboard() {
     PENDING: { label: t("admin.judge.dashboard.status.pending"), color: "blue" },
   }), [t]);
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const me = await api.get("/judge/me");
@@ -82,27 +84,35 @@ export default function JudgeDashboard() {
       setJudgeInfo(me.data.judge);
       const res = await api.get<JudgeProject[]>("/judge/projects");
       setProjects(res.data || []);
-    } catch (e: any) {
-      message.error(e?.response?.data?.error || t("admin.judge.dashboard.failedLoadProjects"));
+    } catch (error: unknown) {
+      let errMsg =
+        t("admin.judge.dashboard.failedLoadProjects") || "Failed to load projects";
+      if (typeof error === "object" && error !== null) {
+        const maybe = error as { response?: { data?: { error?: string } } };
+        if (maybe.response?.data?.error) {
+          errMsg = maybe.response.data.error;
+        }
+      }
+      message.error(errMsg);
     } finally {
       setLoading(false);
     }
-  }
+  }, [navigate, t]);
 
-  async function handleLogout() {
+  const handleLogout = useCallback(async () => {
     try {
       await api.post("/judge/logout", {}, { withCredentials: true });
       message.success(t("admin.judge.dashboard.logoutSuccess") || "Logged out successfully");
       navigate("/judge/login");
-    } catch (e: any) {
+    } catch {
       // Even if logout fails, navigate to login
       navigate("/judge/login");
     }
-  }
+  }, [navigate, t]);
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
 
   function openEvaluation(project: JudgeProject) {
     setActiveProjectId(project.id);
@@ -124,8 +134,17 @@ export default function JudgeDashboard() {
       message.success(decision === "APPROVED" ? t("admin.judge.dashboard.projectApproved") : t("admin.judge.dashboard.projectRejected"));
       setActiveProjectId(null);
       await load();
-    } catch (e: any) {
-      message.error(e?.response?.data?.error || t("admin.judge.dashboard.failedSubmitEvaluation"));
+    } catch (error: unknown) {
+      let errMsg =
+        t("admin.judge.dashboard.failedSubmitEvaluation") ||
+        "Failed to submit evaluation";
+      if (typeof error === "object" && error !== null) {
+        const maybe = error as { response?: { data?: { error?: string } } };
+        if (maybe.response?.data?.error) {
+          errMsg = maybe.response.data.error;
+        }
+      }
+      message.error(errMsg);
     } finally {
       setSubmitting(false);
     }
@@ -145,15 +164,9 @@ export default function JudgeDashboard() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        padding: "32px 24px 64px",
-        background: "linear-gradient(180deg, #f8fafc 0%, #ffffff 80%)",
-      }}
-    >
-      <div style={{ maxWidth: 1080, margin: "0 auto", display: "grid", gap: 24 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
+    <div className={styles.dashboard}>
+      <div className={styles.container}>
+        <div className={styles.header}>
           <div>
             <Typography.Title level={2} style={{ marginBottom: 4 }}>
               {t("admin.judge.dashboard.title")}
@@ -183,11 +196,11 @@ export default function JudgeDashboard() {
         </div>
 
         {projects.length === 0 ? (
-          <Card style={{ borderRadius: 20, boxShadow: "0 16px 48px -24px rgba(15, 23, 42, 0.4)" }}>
+          <Card className={`${styles.card} ${styles.emptyCard}`}>
             <Empty description={t("admin.judge.dashboard.noProjectsAssigned")} />
           </Card>
         ) : (
-          <Space direction="vertical" size={20} style={{ width: "100%" }}>
+          <div className={panelStyles.stack} style={{ gap: 20 }}>
             {projects.map((project) => {
               const statusKey = String(project.status || "PENDING").toUpperCase();
               const status = statusStyle[statusKey] ?? { label: t("admin.judge.dashboard.status.pending"), color: "blue" };
@@ -198,11 +211,7 @@ export default function JudgeDashboard() {
               return (
                 <Card
                   key={project.id}
-                  style={{
-                    borderRadius: 20,
-                    boxShadow: "0 16px 48px -26px rgba(15, 23, 42, 0.38)",
-                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                  }}
+                  className={`${styles.card} ${isActive ? styles.cardActive : ""}`}
                   bodyStyle={{ display: "grid", gap: 16 }}
                   hoverable
                 >
@@ -218,7 +227,7 @@ export default function JudgeDashboard() {
                         <Typography.Paragraph style={{ marginBottom: 0 }}>
                           {project.description}
                         </Typography.Paragraph>
-                        <Space size={12} wrap>
+                        <div className={styles.projectMeta}>
                           {typeof project.final_score === "number" && (
                             <Tag color="blue">{t("admin.judge.dashboard.finalScore")}: {project.final_score} / 100</Tag>
                           )}
@@ -227,12 +236,12 @@ export default function JudgeDashboard() {
                               {t("admin.judge.dashboard.received")} {new Date(project.created_at).toLocaleString()}
                             </Typography.Text>
                           )}
-                        </Space>
+                        </div>
                       </Space>
                     </Col>
                   </Row>
 
-                  <Space size={12} wrap>
+                  <div className={styles.fileList}>
                     {project.pdf_url && (
                       <Button
                         icon={<FilePdfOutlined />}
@@ -248,21 +257,14 @@ export default function JudgeDashboard() {
                         {t("admin.judge.dashboard.averageScore")}: {(project.evaluation.ratings.reduce((sum, val) => sum + val, 0) / QUESTIONS.length).toFixed(1)}
                       </Tag>
                     )}
-                  </Space>
+                  </div>
 
                   {isPending && (
                     <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: 16 }}>
                       {isActive ? (
                         <Space direction="vertical" size={16} style={{ width: "100%" }}>
                           {QUESTIONS.map((question, idx) => (
-                            <div key={question}
-                              style={{
-                                padding: 12,
-                                borderRadius: 14,
-                                background: "rgba(241, 245, 249, 0.65)",
-                                border: "1px solid rgba(226, 232, 240, 0.6)",
-                              }}
-                            >
+                            <div key={question} className={styles.question}>
                               <Space direction="vertical" style={{ width: "100%" }} size={8}>
                                 <Typography.Text strong>{idx + 1}. {question}</Typography.Text>
                                 <Slider
@@ -280,9 +282,9 @@ export default function JudgeDashboard() {
                             </div>
                           ))}
 
-                          <Space align="center" style={{ justifyContent: "space-between" }}>
+                          <div className={styles.actions}>
                             <Typography.Text strong>{t("admin.judge.dashboard.totalScore")}: {totalScore} / 100</Typography.Text>
-                            <Space>
+                            <div className={styles.actionsButtons}>
                               <Button
                                 type="primary"
                                 icon={<CheckCircleOutlined />}
@@ -302,8 +304,8 @@ export default function JudgeDashboard() {
                               <Button onClick={() => setActiveProjectId(null)} disabled={submitting}>
                                 {t("admin.judge.dashboard.cancel")}
                               </Button>
-                            </Space>
-                          </Space>
+                            </div>
+                          </div>
                         </Space>
                       ) : (
                         <Button type="primary" onClick={() => openEvaluation(project)}>
@@ -315,7 +317,7 @@ export default function JudgeDashboard() {
                 </Card>
               );
             })}
-          </Space>
+          </div>
         )}
       </div>
     </div>

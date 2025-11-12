@@ -1,0 +1,120 @@
+.dashboard {
+  min-height: 100vh;
+  padding: clamp(24px, 4vw, 64px) clamp(16px, 5vw, 56px);
+  background: var(--panel-bg, #f8fafc);
+  color: var(--panel-fg, #0f172a);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.container {
+  width: min(1080px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: clamp(20px, 3vw, 28px);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.card {
+  border-radius: 22px;
+  background: var(--panel-card, #ffffff);
+  border: 1px solid var(--panel-border, #e2e8f0);
+  box-shadow: var(--shadow, 0 16px 48px -26px rgba(15, 23, 42, 0.35));
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 54px -26px rgba(15, 23, 42, 0.4);
+  border-color: rgba(37, 99, 235, 0.35);
+}
+
+.cardActive {
+  border-color: rgba(37, 99, 235, 0.55);
+  box-shadow: 0 20px 60px -28px rgba(37, 99, 235, 0.35);
+}
+
+.emptyCard {
+  border-radius: 22px;
+  background: var(--panel-card, #ffffff);
+  border: 1px dashed var(--panel-border, #d5dbe4);
+  box-shadow: none;
+}
+
+.projectMeta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.fileList {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.question {
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(148, 163, 184, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.question:hover {
+  background: rgba(148, 163, 184, 0.18);
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.actionsButtons {
+  display: inline-flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 720px) {
+  .dashboard {
+    padding: 24px 16px 48px;
+  }
+
+  .container {
+    gap: 20px;
+  }
+
+  .actions {
+    align-items: flex-start;
+  }
+
+  .actionsButtons {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+html[data-theme="dark"] {
+  .card:hover {
+    box-shadow: 0 20px 60px -28px rgba(15, 23, 42, 0.7);
+  }
+
+  .question {
+    background: rgba(148, 163, 184, 0.22);
+    border-color: rgba(148, 163, 184, 0.32);
+  }
+}
+
