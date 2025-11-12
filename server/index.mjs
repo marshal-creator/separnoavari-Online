@@ -587,7 +587,7 @@ app.post(
     if (!description || !file) {
       return res.status(400).json({ error: "Missing description or file" });
     }
-    let normalizedIdeaId: number | null = null;
+    let normalizedIdeaId = null;
     if (ideaId !== undefined && ideaId !== null && String(ideaId).trim() !== "") {
       const parsed = Number(ideaId);
       if (Number.isNaN(parsed)) {
