@@ -6,10 +6,12 @@ import {
   Card,
   Drawer,
   Empty,
+  Grid,
   Modal,
   Space,
   Table,
   Tag,
+  Tooltip,
   Typography,
   Input,
   message,
@@ -58,6 +60,8 @@ function formatStatus(status: string | null | undefined, t: (key: string) => str
 export default function JudgesListPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const screens = Grid.useBreakpoint();
+  const isCompact = !screens?.md;
   const [judges, setJudges] = useState<AdminJudge[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedJudge, setSelectedJudge] = useState<AdminJudge | null>(null);
@@ -151,12 +155,15 @@ export default function JudgesListPage() {
     }
   }, [t]);
 
+  const actionColumnWidth = isCompact ? 150 : 220;
+
   const columns: ColumnsType<AdminJudge> = useMemo(
     () => [
       {
         title: t("admin.judges.pages.judgesListPage.judgeName"),
         dataIndex: "name",
         key: "name",
+        ellipsis: true,
         render: (value: string) => (
           <Typography.Text style={{ fontWeight: 500 }}>{value}</Typography.Text>
         ),
@@ -171,43 +178,50 @@ export default function JudgesListPage() {
         title: t("admin.judges.pages.judgesListPage.assignedProjects"),
         dataIndex: "projectCount",
         key: "projectCount",
-        width: 160,
+        width: isCompact ? 120 : 160,
         sorter: (a, b) => a.projectCount - b.projectCount,
         render: (value: number) => <Tag color={value ? "blue" : "default"}>{value}</Tag>,
       },
       {
         title: t("admin.judges.pages.judgesListPage.actions"),
         key: "actions",
-        width: 220,
+        width: actionColumnWidth,
         render: (_, record) => (
-          <Space size="middle">
-            <Button
-              type="link"
-              icon={<EyeOutlined />}
-              onClick={() => openJudgeDrawer(record)}
-            >
-              {t("admin.judges.pages.judgesListPage.view")}
-            </Button>
-            <Button
-              type="link"
-              icon={<SendOutlined />}
-              onClick={() => navigate(`/panel/admin/judges/${record.id}/assign`)}
-            >
-              {t("admin.judges.pages.judgesListPage.assign")}
-            </Button>
-            <Button
-              type="link"
-              danger
-              icon={<DeleteOutlined />}
-              onClick={() => openDeleteModal(record)}
-            >
-              {t("admin.judges.pages.judgesListPage.delete", { defaultValue: "Delete" })}
-            </Button>
+          <Space size={isCompact ? 4 : "middle"} wrap>
+            <Tooltip title={t("admin.judges.pages.judgesListPage.view")}>
+              <Button
+                type="link"
+                icon={<EyeOutlined />}
+                onClick={() => openJudgeDrawer(record)}
+              >
+                {!isCompact && t("admin.judges.pages.judgesListPage.view")}
+              </Button>
+            </Tooltip>
+            <Tooltip title={t("admin.judges.pages.judgesListPage.assign")}>
+              <Button
+                type="link"
+                icon={<SendOutlined />}
+                onClick={() => navigate(`/panel/admin/judges/${record.id}/assign`)}
+              >
+                {!isCompact && t("admin.judges.pages.judgesListPage.assign")}
+              </Button>
+            </Tooltip>
+            <Tooltip title={t("admin.judges.pages.judgesListPage.delete", { defaultValue: "Delete" })}>
+              <Button
+                type="link"
+                danger
+                icon={<DeleteOutlined />}
+                onClick={() => openDeleteModal(record)}
+              >
+                {!isCompact &&
+                  t("admin.judges.pages.judgesListPage.delete", { defaultValue: "Delete" })}
+              </Button>
+            </Tooltip>
           </Space>
         ),
       },
     ],
-    [t, navigate, openJudgeDrawer]
+    [t, navigate, openJudgeDrawer, isCompact]
   );
 
   return (
@@ -237,6 +251,8 @@ export default function JudgesListPage() {
           loading={loading}
           rowKey={(row) => row.id}
           pagination={{ pageSize: 10, showSizeChanger: false }}
+          size={isCompact ? "small" : "middle"}
+          scroll={isCompact ? { x: "max-content" } : undefined}
           sticky
         />
       </Card>
