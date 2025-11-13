@@ -4,9 +4,11 @@ import { listAssignments, listIdeas, listJudges } from "../../api";
 import type { Assignment, Idea, Judge } from "../../api";
 
 type Row = Assignment & {
+  ideaId: string;
+  judgeId: string;
   ideaTitle: string;
   judgeName: string;
-  submittedAt?: string;
+  submittedAt?: string | null;
   scoreAvg?: number | null;
 };
 

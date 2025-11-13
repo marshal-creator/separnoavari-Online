@@ -181,7 +181,11 @@ export default function Ideas() {
           text: trackLabels.get(String(track)) || String(track),
           value: String(track),
         })),
-        onFilter: (value: string, record: IdeaRow) => record.track === value,
+        onFilter: (value, record: IdeaRow) => {
+          if (!record.track) return false;
+          const filterValue = typeof value === "string" ? value : String(value);
+          return record.track === filterValue;
+        },
       },
       {
         title: t("admin.ideas.date"),
