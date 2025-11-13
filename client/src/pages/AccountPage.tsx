@@ -58,34 +58,9 @@ export default function AccountPage() {
     }
   };
 
-  const items: FirstMyIdeaType[] = data?.ideas ?? [];
-
-  const getStatusMeta = (status?: string) => {
-    const normalized = (status || "PENDING").toUpperCase();
-    switch (normalized) {
-      case "UNDER_REVIEW":
-        return {
-          label: t("admin.status.underReview"),
-          className: `${styles.statusPill} ${styles.statusReview}`,
-        };
-      case "ACCEPTED":
-        return {
-          label: t("admin.status.accepted"),
-          className: `${styles.statusPill} ${styles.statusAccepted}`,
-        };
-      case "REJECTED":
-        return {
-          label: t("admin.status.rejected"),
-          className: `${styles.statusPill} ${styles.statusRejected}`,
-        };
-      case "PENDING":
-      default:
-        return {
-          label: t("admin.status.pending"),
-          className: `${styles.statusPill} ${styles.statusPending}`,
-        };
-    }
-  };
+  const items: FirstMyIdeaType[] = (data?.ideas ?? []).filter(
+    (item) => (item.status || "").toUpperCase() !== "PENDING"
+  );
 
   const getTrackLabel = (slug?: string) => {
     if (!slug) return "—";
@@ -143,13 +118,11 @@ export default function AccountPage() {
           {!isLoading && !isError && items.length > 0 && (
             <div className={styles.listGridWrapper}>
               {items.map((item) => {
-                const statusMeta = getStatusMeta(item.status);
                 return (
                   <article className={styles.card} key={item.id}>
                     <div className={styles.cardHead}>
                       <div className={styles.cardTitleWrap}>
                         <h3 className={styles.cardTitle}>{item.idea_title}</h3>
-                        <span className={statusMeta.className}>{statusMeta.label}</span>
                       </div>
                       <div className={styles.tagTrack}>
                         <Tag color="blue">{getTrackLabel(item.track)}</Tag>

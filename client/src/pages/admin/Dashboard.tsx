@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { listIdeas, listJudges, listAssignments } from "../../api";

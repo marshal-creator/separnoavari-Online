@@ -14,5 +14,5 @@ yarn.lock
 # Build artifacts
 /client/build/
 /client/dist/
-server/database.db
+/server/database.db
 *.db
