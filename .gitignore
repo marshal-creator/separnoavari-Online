@@ -15,3 +15,4 @@ yarn.lock
 /client/build/
 /client/dist/
 server/database.db
+*.db
