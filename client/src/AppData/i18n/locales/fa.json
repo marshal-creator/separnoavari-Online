@@ -367,20 +367,6 @@
       "track": "محور",
       "date": "تاریخ ثبت",
       "file": "فایل ها",
-      "assignJudges": {
-        "title": "تعیین داور",
-        "placeholder": "داوران مورد نظر را انتخاب کنید",
-        "button": "تخصیص داوران انتخاب‌شده",
-        "selectedCount": "{{count}} داور انتخاب شده است.",
-        "noPdf": "برای این ایده فایل PDF ثبت نشده است. پیش از تخصیص فایل را بارگذاری کنید.",
-        "noneAvailable": "همه داوران قبلاً به این ایده تخصیص داده شده‌اند.",
-        "success": "داوران با موفقیت تخصیص داده شدند.",
-        "error": "تخصیص داوران ناموفق بود."
-      },
-      "assignmentsSummary": {
-        "count": "{{completed}} از {{total}} تکمیل شده",
-        "average": "میانگین امتیاز: {{score}}"
-      },
       "actions": "اقدامات",
       "submitterName": "ارسال‌کننده",
       "submitterUsername": "نام کاربری",
@@ -408,7 +394,7 @@
       "cards": {
         "ideas": "ایده‌ها",
         "judges": "داوران",
-        "assignments": "ایده‌های تخصیص‌یافته"
+        "assignments": "تخصیص‌ها"
       },
       "charts": {
         "byStatus": "ایده‌ها بر اساس وضعیت",
@@ -421,23 +407,7 @@
       },
       "notifications": {
         "title": "اعلان‌ها",
-        "stats": {
-          "totalIdeas": "کل ایده‌ها",
-          "assignedIdeas": "ایده‌های تخصیص‌یافته",
-          "unassignedIdeas": "ایده‌های تخصیص‌نشده",
-          "completedEvaluations": "داوری‌های تکمیل‌شده"
-        },
-        "feedTitle": "رویدادهای اخیر",
-        "loading": "در حال بارگذاری اعلان‌ها…",
-        "empty": "اعلان جدیدی وجود ندارد.",
-        "events": {
-          "ideaSubmitted": "یک ایده جدید ثبت شد.",
-          "evaluationCompleted": "داور {{judge}} ارزیابی خود را تکمیل کرد.",
-          "unknownJudge": "داور نامشخص",
-          "untitledIdea": "ایده بدون عنوان",
-          "unknownTime": "زمان نامشخص"
-        },
-        "lastUpdated": "آخرین به‌روزرسانی: {{time}}"
+        "unassigned": "ایده هنوز به داوری تخصیص نیافته"
       }
     },
     "assignments": {
@@ -717,23 +687,23 @@
     },
     "ranking": {
       "title": "رتبه‌بندی پروژه‌ها",
-      "subtitle": "عملکرد داوران را پایش کنید و ایده‌های برتر را بیابید.",
-      "searchPlaceholder": "جستجوی ایده یا داور",
-      "failedLoadProjects": "خطا در بارگذاری رتبه‌بندی پروژه‌ها",
-      "projects": "پروژه",
-      "of": "از",
+      "subtitle": "فهرست تمام پروژه‌های ارسال شده به ترتیب امتیاز نهایی (بالاترین امتیاز اول)",
+      "failedLoadProjects": "خطا در بارگذاری پروژه‌ها",
+      "searchPlaceholder": "جستجو در پروژه‌ها...",
+      "downloadPdf": "دانلود PDF",
       "untitled": "بدون عنوان",
+      "totalProjects": "مجموع {{count}} پروژه",
+      "of": "از",
+      "projects": "پروژه",
       "columns": {
         "rank": "رتبه",
-        "idea": "ایده",
-        "judgesList": "داوران و امتیازها",
-        "averageScore": "میانگین امتیاز",
-        "completed": "تکمیل شده",
-        "lastUpdated": "آخرین فعالیت"
-      },
-      "noJudgesAssigned": "هنوز داوری برای این ایده تعیین نشده است.",
-      "pending": "در انتظار",
-      "unknownJudge": "داور نامشخص"
+        "title": "عنوان پروژه",
+        "judge": "داور",
+        "score": "امتیاز نهایی",
+        "status": "وضعیت",
+        "date": "تاریخ ارزیابی",
+        "actions": "عملیات"
+      }
     }
   },
 
