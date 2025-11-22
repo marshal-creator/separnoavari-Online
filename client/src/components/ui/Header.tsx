@@ -53,7 +53,6 @@ export default function Header({
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("");
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // Sync with i18n on mount and when i18n changes
   useEffect(() => {
@@ -70,11 +69,6 @@ export default function Header({
     void i18n.changeLanguage(lang);
     onLanguageChange?.(lang);
   }, [lang, onLanguageChange]);
-
-  // Mark initial load as complete after first render
-  useEffect(() => {
-    setIsInitialLoad(false);
-  }, []);
 
   // header shadow
   useEffect(() => {
@@ -116,10 +110,7 @@ export default function Header({
   );
 
   // smooth scroll after route change (when a hash is present)
-  // Skip on initial load to prevent auto-scrolling on first page visit
   useEffect(() => {
-    // Don't scroll on initial load - only scroll when user explicitly navigates
-    if (isInitialLoad) return;
     if (!location.hash) return;
     const id = location.hash.slice(1);
     const t = setTimeout(() => {
@@ -129,7 +120,7 @@ export default function Header({
       window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
     }, 0);
     return () => clearTimeout(t);
-  }, [location.pathname, location.hash, isInitialLoad]);
+  }, [location.pathname, location.hash]);
 
   // scroll-spy (which section is in view)
   useEffect(() => {

@@ -1,30 +1,23 @@
 import { Outlet, ScrollRestoration, useLocation } from "react-router-dom";
 import Header from "../components/ui/Header";
 import Footer from "../components/ui/Footer";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 // import { useAuth } from "../contexts/AuthContext";
 
 export default function DefaultLayout() {
   const loc = useLocation();
-  const [isInitialMount, setIsInitialMount] = useState(true);
   // const { isAuthenticated } = useAuth();
 
-  // Ensure page starts at top on initial load (no hash)
+  // Optional: keep your instant scroll-to-top on route change
   useEffect(() => {
-    if (!loc.hash) {
-      window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
-    }
-    setIsInitialMount(false);
-  }, []);
+    // guard for SSR / non-browser
+    // if (typeof window !== "undefined" && typeof window.scrollTo === "function") {
+    //   // "instant" isn't standard across TS types, cast for safety
+    //   window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+    // }
 
-  // Optional: keep your instant scroll-to-top on route change (after initial load)
-  useEffect(() => {
-    if (isInitialMount) return;
-    // Don't scroll to top if there's a hash in the URL (let Header handle it)
-    if (loc.hash) return;
-    
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
-  }, [loc.pathname, loc.hash, isInitialMount]);
+  }, [loc.pathname]);
 
   return (
     <div style={{ background: "var(--bg)", color: "var(--text)", minHeight: "100dvh" }}>
