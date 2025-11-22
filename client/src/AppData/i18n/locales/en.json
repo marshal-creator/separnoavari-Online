@@ -180,7 +180,12 @@
     "seeTimeline": "View Full Timeline",
     "submission": "Idea Submission Deadline",
     "results": "Final Evaluation & Announcement",
-    "closing": "Closing Ceremony"
+    "closing": "Closing Ceremony",
+    "review": {
+      "title": "Review Phase",
+      "message": "Submission phase ended. We are now in the review phase.",
+      "completed": "Review completed. Awaiting closing ceremony."
+    }
   },
 
   "timer": {
@@ -325,10 +330,23 @@
     "addMember": "Add Member",
     "send": "Submit",
     "sending": "Submitting...",
+    "ended": {
+      "title": "Idea Submission Period Has Ended",
+      "description": "The idea submission period has ended. The process is now in the review and evaluation phase. Results will be announced soon.",
+      "phase": {
+        "review": "Review Phase",
+        "reviewDesc": "Submitted ideas are under review",
+        "results": "Results Announcement",
+        "resultsDesc": "Results will be announced soon"
+      },
+      "backToHome": "Back to Home",
+      "viewTimeline": "View Timeline"
+    },
 
     "errors": {
       "fileRequired": "Please upload your proposal file.",
       "file2Required": "Please upload the second required file.",
+      "wordRequired": "Please upload the Word file (DOC/DOCX).",
       "fileType": "Only PDF and Word files are allowed.",
       "fileSize": "File must be under 50 MB.",
       "submitterName": "Please enter your full name.",

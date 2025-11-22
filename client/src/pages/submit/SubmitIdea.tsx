@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import type { UploadFile } from "antd";
 import type { RcFile } from "antd/es/upload/interface";
 // import { useNavigate } from "react-router-dom";
@@ -21,6 +21,8 @@ import submitIdea, {
 } from "../../service/apis/idea/submitIdea/submitIdea";
 import { useAuth } from "../../contexts/AuthProvider";
 import { TRACKS } from "../../AppData/tracks";
+import { MILESTONES } from "../../AppData/schedule";
+import SubmissionEnded from "./SubmissionEnded";
 
 type SubmitIdeaFormValues = Omit<SubmitIdeaProps, "pdf_file" | "word_file" | "team_members">;
 
@@ -42,6 +44,14 @@ export default function SubmitIdeaPage() {
   const [pdfFileList, setPdfFileList] = useState<UploadFile<RcFile>[]>([]);
   const [wordFileList, setWordFileList] = useState<UploadFile<RcFile>[]>([]);
 
+  // Check if submission deadline has passed
+  const isSubmissionEnded = useMemo(() => {
+    const submissionMilestone = MILESTONES.find((m) => m.key === "submission");
+    if (!submissionMilestone) return false;
+    const deadlineTime = new Date(submissionMilestone.iso).getTime();
+    return Date.now() >= deadlineTime;
+  }, []);
+
   // useEffect(() => {
   //   if (!user) {
   //     nav(`/login?next=${encodeURIComponent("/submit")}`, { replace: true });
@@ -51,6 +61,11 @@ export default function SubmitIdeaPage() {
   useEffect(() => {
     document.title = t("submit.title") + "  Separ Noavari";
   }, [t]);
+
+  // Show ended page if deadline has passed
+  if (isSubmissionEnded) {
+    return <SubmissionEnded />;
+  }
 
   const onFinish = async (values: SubmitIdeaFormValues) => {
     const pdfFile = pdfFileList[0]?.originFileObj as File | undefined;

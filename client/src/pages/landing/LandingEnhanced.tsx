@@ -71,7 +71,7 @@ function useNowTick(intervalMs = 30000) {
 const now = useNowTick(); // or use Date.now() if you don't need live updates
 
 const {
-  submissionIso, resultsIso, closingIso, next, upcoming, submissionOver
+  submissionIso, resultsIso, closingIso, reviewIso, next, submissionOver, reviewOver, currentPhase
 } = useMemo(() => {
   // Build base list from MILESTONES
   const fromMilestones: Array<Milestone & { ts: number }> = (MILESTONES || [])
@@ -99,21 +99,43 @@ const {
   const byKey = (k: MilestoneKey) => list.find(i => i.key === k);
 
   const submission = byKey("submission");
+  const review = byKey("review");
   const results = byKey("results");
   const closing = byKey("closing");
 
   // Compute timeline states
-  const nextMilestone = list.find(i => i.ts > now) ?? list.at(-1);
-  const upcomingList = list.filter(i => i.ts > now).slice(0, 2);
   const isSubmissionOver = submission ? now >= submission.ts : true;
+  const isReviewOver = review ? now >= review.ts : (results ? now >= results.ts : false);
+  
+  // Determine current phase
+  let phase: "submission" | "review" | "completed" = "submission";
+  if (isSubmissionOver && !isReviewOver) {
+    phase = "review";
+  } else if (isReviewOver) {
+    phase = "completed";
+  }
+
+  // Determine next milestone to show
+  let nextMilestone: (Milestone & { ts: number }) | undefined;
+  if (phase === "submission" && submission) {
+    nextMilestone = submission;
+  } else if (phase === "review" && review) {
+    nextMilestone = review;
+  } else if (phase === "completed" && closing) {
+    nextMilestone = closing;
+  } else {
+    nextMilestone = list.find(i => i.ts > now) ?? list.at(-1);
+  }
 
   return {
     submissionIso: submission?.iso,
+    reviewIso: review?.iso,
     resultsIso: results?.iso,
     closingIso: closing?.iso,
     next: nextMilestone,
-    upcoming: upcomingList,
     submissionOver: isSubmissionOver,
+    reviewOver: isReviewOver,
+    currentPhase: phase,
   };
 }, [MILESTONES, RESULTS_DATE_ISO, now]);
 
@@ -165,37 +187,41 @@ const {
             />
             <div className={s.cardBody}>
               <h3 className={s.cardHeading}>
-                {t("countdown.title", { defaultValue: "Next Milestone" })}
+                {currentPhase === "submission"
+                  ? t("countdown.title", { defaultValue: "Submission Deadline" })
+                  : currentPhase === "review"
+                  ? t("countdown.review.title", { defaultValue: isFa ? "مرحله بررسی" : "Review Phase" })
+                  : t("countdown.closing", { defaultValue: isFa ? "مراسم اختتامیه" : "Closing Ceremony" })}
               </h3>
               <p className={s.cardText}>
-                {t("countdown.tip", {
-                  defaultValue: "Stay on time and plan your submission.",
-                })}
+                {currentPhase === "submission"
+                  ? t("countdown.tip", {
+                      defaultValue: isFa ? "تاریخ‌های مهم را از دست ندهید." : "Do not miss key dates.",
+                    })
+                  : currentPhase === "review"
+                  ? t("countdown.review.message", {
+                      defaultValue: isFa
+                        ? "مرحله ارسال به پایان رسید. اکنون در مرحله بررسی هستیم."
+                        : "Submission phase ended. We are now in the review phase.",
+                    })
+                  : t("countdown.review.completed", {
+                      defaultValue: isFa
+                        ? "بررسی به پایان رسید. منتظر مراسم اختتامیه باشید."
+                        : "Review completed. Awaiting closing ceremony.",
+                    })}
               </p>
-              {next?.iso && <Countdown targetISO={next.iso} size="lg" />}
-              {upcoming?.length > 0 && (
-                <div className={s.listVertical}>
-                  {upcoming.map((milestone) => (
-                    <div key={milestone.key} className={s.row}>
-                      <span>{milestone.label}</span>
-                      {submissionOver ? (
-                        <Countdown
-                          targetISO={milestone.iso}
-                          size="sm"
-                          showLabels={true}
-                        />
-                      ) : (
-                        <span className={s.muted}>
-                          {formatDate(milestone.iso)}
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
+              {currentPhase === "submission" && submissionIso && (
+                <Countdown targetISO={submissionIso} size="lg" />
+              )}
+              {currentPhase === "review" && reviewIso && (
+                <Countdown targetISO={reviewIso} size="lg" />
+              )}
+              {currentPhase === "completed" && closingIso && (
+                <Countdown targetISO={closingIso} size="lg" />
               )}
               <a className={s.btn} href="#timeline" data-variant="ghost">
                 {t("countdown.seeTimeline", {
-                  defaultValue: "See timeline",
+                  defaultValue: isFa ? "مشاهده جدول زمانی کامل" : "View Full Timeline",
                 })}
               </a>
             </div>
@@ -292,14 +318,20 @@ const {
             <div className={s.glassHead}>
               <span className={s.badge}>
                 {t("timeline.item.submission", {
-                  defaultValue: "بازه ارسال ایده",
+                  defaultValue: isFa ? "بازه ارسال ایده" : "Idea Submission Period",
                 })}
               </span>
               <strong className={s.muted}>{formatDate(submissionIso)}</strong>
             </div>
             <div className={s.glassBody}>
               {submissionIso ? (
-                <Countdown targetISO={submissionIso} size="sm" />
+                submissionOver ? (
+                  <span className={s.muted}>
+                    {t("timer.closed", { defaultValue: isFa ? "به پایان رسید" : "Closed" })}
+                  </span>
+                ) : (
+                  <Countdown targetISO={submissionIso} size="sm" />
+                )
               ) : (
                 <span className={s.muted}>—</span>
               )}
@@ -310,13 +342,31 @@ const {
             <div className={s.glassHead}>
               <span className={s.badge}>
                 {t("timeline.item.review", {
-                  defaultValue: "Review & Results",
+                  defaultValue: isFa ? "بازبینی و داوری" : "Review & Evaluation",
                 })}
               </span>
-              <strong>{formatDate(resultsIso || RESULTS_DATE_ISO)}</strong>
+              <strong>{formatDate(reviewIso || resultsIso || RESULTS_DATE_ISO)}</strong>
             </div>
             <div className={s.glassBody}>
-              {resultsIso && <Countdown targetISO={resultsIso} size="sm" />}
+              {reviewIso ? (
+                reviewOver ? (
+                  <span className={s.muted}>
+                    {t("timer.closed", { defaultValue: isFa ? "به پایان رسید" : "Closed" })}
+                  </span>
+                ) : (
+                  <Countdown targetISO={reviewIso} size="sm" />
+                )
+              ) : resultsIso ? (
+                reviewOver ? (
+                  <span className={s.muted}>
+                    {t("timer.closed", { defaultValue: isFa ? "به پایان رسید" : "Closed" })}
+                  </span>
+                ) : (
+                  <Countdown targetISO={resultsIso} size="sm" />
+                )
+              ) : (
+                <span className={s.muted}>—</span>
+              )}
             </div>
           </article>
 
@@ -324,13 +374,17 @@ const {
             <div className={s.glassHead}>
               <span className={s.badge}>
                 {t("countdown.closing", {
-                  defaultValue: isFa ? "اختتامیه رویداد" : "Closing Ceremony",
+                  defaultValue: isFa ? "مراسم اختتامیه" : "Closing Ceremony",
                 })}
               </span>
               <strong>{formatDate(closingIso)}</strong>
             </div>
             <div className={s.glassBody}>
-              {closingIso && <Countdown targetISO={closingIso} size="sm" />}
+              {closingIso ? (
+                <Countdown targetISO={closingIso} size="sm" />
+              ) : (
+                <span className={s.muted}>—</span>
+              )}
             </div>
           </article>
         </div>
