@@ -13,7 +13,7 @@ type SignupForm = {
 
 export default function SignupPage() {
   const { t, i18n } = useTranslation();
-  const isRTL = (i18n.language || "en").startsWith("fa");
+  const isRTL = (i18n.language || "fa").startsWith("fa");
   const [sp] = useSearchParams();
   const nav = useNavigate();
   const next = sp.get("next") || "/";

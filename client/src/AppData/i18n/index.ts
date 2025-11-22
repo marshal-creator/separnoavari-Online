@@ -6,8 +6,8 @@ import fa from "./locales/fa.json"
 
 i18n.use(initReactI18next).init({
   resources: { en: { translation: en }, fa: { translation: fa } },
-  lng: "en",
-  fallbackLng: "en",
+  lng: localStorage.getItem("lang") || "fa", // زبان پیش‌فرض: فارسی
+  fallbackLng: "fa",
   interpolation: { escapeValue: false },
 })
 

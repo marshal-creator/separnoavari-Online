@@ -10,7 +10,7 @@ import i18n from "./AppData/i18n/i18n";
 export default function App() {
   useEffect(() => {
     const applyDir = () => {
-      const lang = i18n.language || "en";
+      const lang = i18n.language || "fa";
       document.documentElement.lang = lang;
       document.documentElement.dir = lang === "fa" ? "rtl" : "ltr";
     };

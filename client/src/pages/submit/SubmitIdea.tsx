@@ -33,7 +33,7 @@ const { Option } = Select;
 export default function SubmitIdeaPage() {
   const { t, i18n } = useTranslation();
   // const nav = useNavigate();
-  const isRTL = (i18n.language || "en").startsWith("fa");
+  const isRTL = (i18n.language || "fa").startsWith("fa");
   const { user } = useAuth();
 
   const [form] = Form.useForm();

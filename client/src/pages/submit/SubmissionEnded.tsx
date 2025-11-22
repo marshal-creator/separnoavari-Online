@@ -9,7 +9,7 @@ const { Title, Paragraph } = Typography;
 
 export default function SubmissionEnded() {
   const { t, i18n } = useTranslation();
-  const isFa = (i18n.language || "en").startsWith("fa");
+  const isFa = (i18n.language || "fa").startsWith("fa");
 
   return (
     <div className={s.container}>

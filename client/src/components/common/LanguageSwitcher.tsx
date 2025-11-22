@@ -36,7 +36,7 @@ export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
     },
   ];
 
-  const currentLang: SupportedLang = i18n.language.startsWith("fa") ? "fa" : "en";
+  const currentLang: SupportedLang = (i18n.language || "fa").startsWith("fa") ? "fa" : "en";
   const currentLabel = LABELS[currentLang];
 
   return (

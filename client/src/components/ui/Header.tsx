@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import i18n from "../../AppData/i18n";
+import i18n from "../../AppData/i18n/i18n";
 
 import styles from "./header/header.module.scss";
 
@@ -43,10 +43,25 @@ export default function Header({
   const { user } = useAuth();
   const { mode: theme } = useTheme();
 
-  const [lang, setLang] = useState<Lang>(currentLang);
+  // Initialize language from i18n or prop, defaulting to "fa"
+  const initialLang = useMemo(() => {
+    const i18nLang = i18n.language || "fa";
+    return (i18nLang.startsWith("fa") ? "fa" : "en") as Lang;
+  }, []);
+  
+  const [lang, setLang] = useState<Lang>(currentLang || initialLang);
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("");
+
+  // Sync with i18n on mount and when i18n changes
+  useEffect(() => {
+    const i18nLang = i18n.language || "fa";
+    const newLang = (i18nLang.startsWith("fa") ? "fa" : "en") as Lang;
+    if (newLang !== lang) {
+      setLang(newLang);
+    }
+  }, [i18n.language]);
 
   // language / dir
   useEffect(() => {

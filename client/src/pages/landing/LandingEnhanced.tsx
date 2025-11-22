@@ -29,7 +29,7 @@ export default function LandingEnhanced() {
     }
   }, []);
 
-  const isFa = (i18n.language || "en").startsWith("fa");
+  const isFa = (i18n.language || "fa").startsWith("fa");
   // const PRIZE_TOTAL = 2_000_000_000;
   // const formattedPrize = isFa
   //   ? PRIZE_TOTAL.toLocaleString("fa-IR")

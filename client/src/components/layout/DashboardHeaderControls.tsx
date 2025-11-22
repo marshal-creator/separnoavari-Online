@@ -12,7 +12,7 @@ const DashboardHeaderControls = () => {
   const { mode, toggle } = useTheme();
   const { token } = antdTheme.useToken();
 
-  const isFa = i18n.language?.startsWith("fa");
+  const isFa = (i18n.language || "fa").startsWith("fa");
 
   useEffect(() => {
     const html = document.documentElement;
